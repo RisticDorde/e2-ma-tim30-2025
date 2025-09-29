@@ -12,6 +12,14 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MA2025">
         <activity
+            android:name=".auth.LoginActivity"
+            android:exported="false" />
+        <activity
+            android:name=".auth.RegisterActivity"
+            android:exported="false">
+
+        </activity>
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
