@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    id 'com.google.gms.google-services'
 }
 
 android {
@@ -39,6 +40,7 @@ dependencies {
     androidTestImplementation libs.espresso.core
 
     // Firebase
-    implementation 'com.google.firebase:firebase-auth:22.1.0'
-    implementation 'com.google.firebase:firebase-firestore:24.7.1'
+    implementation platform('com.google.firebase:firebase-bom:34.3.0') // ili poslednja verzija
+    implementation 'com.google.firebase:firebase-auth:24.0.1'
+    implementation 'com.google.firebase:firebase-firestore:26.0.1'
 }
