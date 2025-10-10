@@ -13,6 +13,8 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.ma2025.auth.AuthManager;
 import com.example.ma2025.auth.LoginActivity;
 import com.example.ma2025.category.CategoryActivity;
+import com.example.ma2025.task.AddTaskActivity;
+import com.example.ma2025.task.TaskListActivity;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.FirebaseApp;
 
@@ -36,6 +38,19 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(this, CategoryActivity.class);
                 startActivity(intent);
             });
+
+            Button btnAddTask = findViewById(R.id.btnAddTask);
+            btnAddTask.setOnClickListener(v -> {
+                Intent intent = new Intent(this, AddTaskActivity.class);
+                startActivity(intent);
+            });
+
+            Button btnTaskList = findViewById(R.id.btnTaskList);
+            btnTaskList.setOnClickListener(v -> {
+                Intent intent = new Intent(this, TaskListActivity.class);
+                startActivity(intent);
+            });
+
         } else {
             // Nije ulogovan → idi na LoginActivity
             Intent intent = new Intent(this, LoginActivity.class);

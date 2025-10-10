@@ -12,6 +12,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MA2025">
         <activity
+            android:name=".task.TaskListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".task.AddTaskActivity"
+            android:exported="false" />
+        <activity
             android:name=".category.CategoryActivity"
             android:exported="false" />
         <activity
@@ -19,7 +25,7 @@
             android:exported="false" />
         <activity
             android:name=".auth.RegisterActivity"
-            android:exported="false"></activity>
+            android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true">
