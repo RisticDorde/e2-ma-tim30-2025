@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Header Card - Avatar i osnovni podaci -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp"
+                android:gravity="center">
+
+                <!-- Avatar -->
+                <ImageView
+                    android:id="@+id/avatar_image"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:src="@drawable/avatar_1"
+                    android:scaleType="centerCrop"
+                    android:background="@drawable/avatar_selected_border"/>
+
+                <!-- Username -->
+                <TextView
+                    android:id="@+id/username_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Username"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333"/>
+
+                <!-- Title -->
+                <TextView
+                    android:id="@+id/title_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Početnik"
+                    android:textSize="16sp"
+                    android:textColor="#666666"
+                    android:textStyle="italic"/>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Level Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/level_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Nivo 1"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="#4CAF50"/>
+
+                <!-- Progress Bar -->
+                <ProgressBar
+                    android:id="@+id/level_progress_bar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="20dp"
+                    android:layout_marginTop="8dp"
+                    android:progressTint="#4CAF50"
+                    android:progress="30"
+                    android:max="100"/>
+
+                <TextView
+                    android:id="@+id/progress_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="30 / 100 XP"
+                    android:textSize="14sp"
+                    android:textColor="#666666"/>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Stats Card - PP, XP, Coins (privatno) -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/stats_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Statistika"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333"
+                    android:layout_marginBottom="12dp"/>
+
+                <!-- Grid za statistiku -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="3">
+
+                    <!-- Power Points -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="8dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="⚡"
+                            android:textSize="24sp"/>
+
+                        <TextView
+                            android:id="@+id/pp_text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="PP: 10"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="#FF9800"
+                            android:layout_marginTop="4dp"/>
+
+                    </LinearLayout>
+
+                    <!-- Experience Points -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="8dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="⭐"
+                            android:textSize="24sp"/>
+
+                        <TextView
+                            android:id="@+id/xp_text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="XP: 0"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="#2196F3"
+                            android:layout_marginTop="4dp"/>
+
+                    </LinearLayout>
+
+                    <!-- Coins -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="8dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🪙"
+                            android:textSize="24sp"/>
+
+                        <TextView
+                            android:id="@+id/coins_text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Novčići: 0"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="#FFC107"
+                            android:layout_marginTop="4dp"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Badges Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/badges_count_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Bedževi: 0"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Nema bedževa"
+                    android:textSize="14sp"
+                    android:textColor="#999999"/>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Equipment Card (uvijek vidljivo) -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/equipment_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Oprema"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Nema opreme"
+                    android:textSize="14sp"
+                    android:textColor="#999999"/>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- QR Code Card (uvijek vidljivo) -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/qr_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:gravity="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="QR Kod"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333"
+                    android:layout_marginBottom="12dp"/>
+
+                <ImageView
+                    android:id="@+id/qr_code_image"
+                    android:layout_width="200dp"
+                    android:layout_height="200dp"
+                    android:background="#FFFFFF"
+                    android:padding="8dp"
+                    android:scaleType="fitCenter"/>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Change Password Button (privatno) -->
+        <Button
+            android:id="@+id/change_password_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Promeni Lozinku"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/button_background"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp"/>
+
+    </LinearLayout>
+
+</ScrollView>

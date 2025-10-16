@@ -1,4 +1,4 @@
-package com.example.ma2025.auth;
+package com.example.ma2025.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,6 +10,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.ma2025.R;
+import com.example.ma2025.auth.AuthManager;
 
 
 public class LoginActivity extends AppCompatActivity {

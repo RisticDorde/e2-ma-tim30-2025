@@ -12,15 +12,19 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MA2025">
         <activity
-            android:name=".auth.LoginActivity"
+            android:name=".activity.ChangePasswordActivity"
             android:exported="false" />
         <activity
-            android:name=".auth.RegisterActivity"
-            android:exported="false">
-
-        </activity>
+            android:name=".activity.ProfileActivity"
+            android:exported="false" />
         <activity
-            android:name=".MainActivity"
+            android:name=".activity.LoginActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.RegisterActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
