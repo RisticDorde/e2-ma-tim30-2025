@@ -36,6 +36,25 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
+        <!-- Avatar Selection -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Choose your avatar:"
+            android:textSize="16sp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginTop="5dp"/>
+
+        <GridLayout
+            android:id="@+id/avatarContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:columnCount="3"
+            android:rowCount="2"
+            android:alignmentMode="alignMargins"
+            android:useDefaultMargins="true"
+            android:layout_gravity="center" />
         <Button
             android:id="@+id/btnRegister"
             android:text="Register"

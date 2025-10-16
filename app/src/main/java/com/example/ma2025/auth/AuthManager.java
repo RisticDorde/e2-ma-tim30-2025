@@ -1,22 +1,28 @@
 package com.example.ma2025.auth;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.widget.Toast;
 
-import com.example.ma2025.MainActivity;
+import com.example.ma2025.activity.MainActivity;
 import com.example.ma2025.database.DatabaseHelper;
+import com.example.ma2025.model.User;
+import com.example.ma2025.repository.UserRepository;
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.ActionCodeSettings;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
 import com.google.firebase.auth.FirebaseUser;
 
 public class AuthManager {
 
-    // NIJE STATIC INICIJALIZACIJA
     private static FirebaseAuth getAuthInstance(Context context) {
-        FirebaseApp.initializeApp(context); // inicijalizuj Firebase ako već nije
+        FirebaseApp.initializeApp(context);
         return FirebaseAuth.getInstance();
     }
 
@@ -32,18 +38,19 @@ public class AuthManager {
                                 if (task1.isSuccessful()) {
                                     Toast.makeText(context, "Proveri email za aktivaciju!", Toast.LENGTH_SHORT).show();
 
-                                    DatabaseHelper dbHelper = new DatabaseHelper(context);
-                                    SQLiteDatabase db = dbHelper.getWritableDatabase();
-                                    ContentValues values = new ContentValues();
-                                    values.put(DatabaseHelper.COL_EMAIL, email);
-                                    values.put(DatabaseHelper.COL_USERNAME, username);
-                                    values.put(DatabaseHelper.COL_PASSWORD, password);
-                                    values.put(DatabaseHelper.COL_AVATAR, avatar);
-                                    values.put(DatabaseHelper.COL_IS_ACTIVE, 0);
-                                    db.insert(DatabaseHelper.TABLE_USERS, null, values);
-                                    db.close();
+                                    UserRepository userRepo = new UserRepository(context);
+                                    User newUser = new User(email, username, password, avatar);
+                                    newUser.setCreatedAt(String.valueOf(System.currentTimeMillis()));
+                                    newUser.setActive(false);
+                                    userRepo.createUser(newUser);
+
+                                    ((Activity) context).finish();
                                 } else {
-                                    Toast.makeText(context, "Greška pri slanju verifikacionog email-a.", Toast.LENGTH_SHORT).show();
+                                    user.delete().addOnCompleteListener(deleteTask -> {
+                                        if (deleteTask.isSuccessful()) {
+                                            Toast.makeText(context, "Greška pri slanju verifikacionog email-a. Pokušaj ponovo.", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
                                 }
                             });
                         }
@@ -52,27 +59,48 @@ public class AuthManager {
                     }
                 });
     }
-
     public static void loginUser(Context context, String email, String password) {
         FirebaseAuth mAuth = getAuthInstance(context);
 
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        FirebaseUser user = mAuth.getCurrentUser();
-                        if (user != null && user.isEmailVerified()) {
-                            Toast.makeText(context, "Uspešno logovanje!", Toast.LENGTH_SHORT).show();
+                        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+                        UserRepository userRepo = new UserRepository(context);
+                        User localUser = userRepo.getUserByEmail(email);
+
+                        // --- PROVERA 24 SATA ---
+                        long now = System.currentTimeMillis();
+                        long createdAt = 0;
+                        try {
+                            createdAt = Long.parseLong(localUser.getCreatedAt());
+                        } catch (Exception e) {
+                            createdAt = 0;
+                        }
+                        long hours24 = 24L * 60 * 60 * 1000;
+                        boolean isExpired = (now - createdAt) > hours24;
+
+                        if (firebaseUser != null && firebaseUser.isEmailVerified()) {
+                            Toast.makeText(context, "Uspesno logovanje!", Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent(context, MainActivity.class);
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             context.startActivity(intent);
+
+                        } else if (isExpired) {
+                            Toast.makeText(context, "Aktivacioni link je istekao! Registruj se ponovo.", Toast.LENGTH_LONG).show();
+                            firebaseUser.delete();
+                            userRepo.deleteUser(localUser.getId());
+
                         } else {
-                            Toast.makeText(context, "Email nije verifikovan!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(context, "Email nije verifikovan! Proveri inbox.", Toast.LENGTH_SHORT).show();
                         }
+
                     } else {
-                        Toast.makeText(context, "Greška pri logovanju: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(context, "Greska pri logovanju: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
+
 
     public static void logoutUser(Context context) {
         FirebaseAuth mAuth = getAuthInstance(context);
