@@ -3,6 +3,7 @@ package com.example.ma2025.activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -74,6 +75,7 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void loadCurrentUser() {
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        Log.d("PROFILE_DEBUG", "Current Firebase email: " + firebaseUser.getEmail());
         if (firebaseUser == null) {
             Toast.makeText(this, "Niste prijavljeni", Toast.LENGTH_SHORT).show();
             finish();
@@ -81,6 +83,7 @@ public class ProfileActivity extends AppCompatActivity {
         }
 
         currentUser = userRepo.getUserByEmail(firebaseUser.getEmail());
+        Log.d("PROFILE_DEBUG", "Current Firebase email: " + firebaseUser.getEmail());
         if (currentUser == null) {
             Toast.makeText(this, "Greška pri učitavanju profila", Toast.LENGTH_SHORT).show();
             finish();

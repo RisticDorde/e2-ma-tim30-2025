@@ -37,9 +37,9 @@
         <activity
             android:name=".activity.ShopActivity"
             android:exported="false" />
-        <activity
+        <!--<activity
             android:name=".activity_shop"
-            android:exported="false" />
+            android:exported="false" />-->
         <activity
             android:name=".activity.ChangePasswordActivity"
             android:exported="false" />
