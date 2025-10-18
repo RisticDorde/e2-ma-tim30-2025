@@ -76,7 +76,7 @@ public class OneTimeTaskListFragment extends Fragment {
                                 for (var doc : snapshots) {
                                     Task task = doc.toObject(Task.class);
                                     task.setId(doc.getId());
-                                    if (task.getFrequency() == TaskFrequency.ONETIME) {
+                                    if (task.getFrequency() == TaskFrequency.ONETIME && (task.getParentTaskId() == null || task.getParentTaskId().isEmpty())) {
                                         taskList.add(task);
                                     }
                                 }

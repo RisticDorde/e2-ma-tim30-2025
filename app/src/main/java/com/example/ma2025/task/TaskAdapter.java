@@ -1,5 +1,6 @@
 package com.example.ma2025.task;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,7 +14,9 @@ import com.example.ma2025.R;
 import com.example.ma2025.model.Category;
 import com.example.ma2025.model.Task;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
@@ -37,28 +40,49 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     @Override
     public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
         Task task = taskList.get(position);
-
         holder.tvTaskName.setText(task.getName());
-        holder.tvTaskDate.setText(
-                task.getFrequency() == null || task.getFrequency() == TaskFrequency.ONETIME
-                        ? task.getExecutionDate() != null ? task.getExecutionDate().toString() : "-"
-                        : task.getStartDate() + " → " + task.getEndDate()
-        );
 
-        // Pronađi kategoriju
+        // Formatiraj datum
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
+
+        String dateText;
+        if (task.getFrequency() == null || task.getFrequency() == TaskFrequency.ONETIME) {
+            dateText = (task.getExecutionDate() != null)
+                    ? dateFormat.format(task.getExecutionDate())
+                    : "-";
+        } else {
+            String start = (task.getStartDate() != null)
+                    ? dateFormat.format(task.getStartDate())
+                    : "?";
+            String end = (task.getEndDate() != null)
+                    ? dateFormat.format(task.getEndDate())
+                    : "?";
+            dateText = start + " → " + end;
+        }
+
+        holder.tvTaskDate.setText(dateText);
+
+        // Kategorija i boja (ostaje isto)
         Category cat = categoryMap.get(task.getCategoryId());
         if (cat != null) {
             holder.tvCategoryName.setText(cat.getName());
             try {
                 holder.viewCategoryColor.setBackgroundColor(Color.parseColor(cat.getColor()));
             } catch (Exception e) {
-                holder.viewCategoryColor.setBackgroundColor(Color.GRAY);
+                holder.viewCategoryColor.setBackgroundColor(Color.LTGRAY);
             }
         } else {
             holder.tvCategoryName.setText("Nepoznato");
-            holder.viewCategoryColor.setBackgroundColor(Color.GRAY);
+            holder.viewCategoryColor.setBackgroundColor(Color.LTGRAY);
         }
+
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(v.getContext(), TaskDetailsActivity.class);
+            intent.putExtra("taskId", task.getId());
+            v.getContext().startActivity(intent);
+        });
     }
+
 
     @Override
     public int getItemCount() {

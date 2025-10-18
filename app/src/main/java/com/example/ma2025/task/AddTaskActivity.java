@@ -16,6 +16,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -128,17 +129,20 @@ public class AddTaskActivity extends AppCompatActivity {
         // Date pickeri
         btnPickExecutionDate.setOnClickListener(v -> pickDate(date -> {
             executionDate = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
-            tvExecutionDate.setText(executionDate.toString());
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+            tvExecutionDate.setText(date.format(formatter)); // koristi LocalDate za prikaz
         }));
 
         btnPickStartDate.setOnClickListener(v -> pickDate(date -> {
-            startDate = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());;
-            tvStartDate.setText(startDate.toString());
+            startDate = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+            tvStartDate.setText(date.format(formatter));
         }));
 
         btnPickEndDate.setOnClickListener(v -> pickDate(date -> {
-            endDate = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());;
-            tvEndDate.setText(endDate.toString());
+            endDate = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+            tvEndDate.setText(date.format(formatter));
         }));
 
         // Sačuvaj
@@ -182,6 +186,7 @@ public class AddTaskActivity extends AppCompatActivity {
         task.setImportance(imp);
         task.setCategoryId(categoryId);
         task.setTotalXP( task.getDifficulty().getXp() + task.getImportance().getXp());
+        task.setTaskStatus(TaskStatus.ACTIVE);
 
         if (freq == TaskFrequency.ONETIME) {
             if (executionDate == null) {

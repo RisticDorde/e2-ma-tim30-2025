@@ -14,6 +14,7 @@ import com.example.ma2025.auth.AuthManager;
 import com.example.ma2025.auth.LoginActivity;
 import com.example.ma2025.category.CategoryActivity;
 import com.example.ma2025.task.AddTaskActivity;
+import com.example.ma2025.task.TaskCalendarActivity;
 import com.example.ma2025.task.TaskListActivity;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.FirebaseApp;
@@ -48,6 +49,12 @@ public class MainActivity extends AppCompatActivity {
             Button btnTaskList = findViewById(R.id.btnTaskList);
             btnTaskList.setOnClickListener(v -> {
                 Intent intent = new Intent(this, TaskListActivity.class);
+                startActivity(intent);
+            });
+
+            Button btnTaskCalendar = findViewById(R.id.btnTaskCalendar);
+            btnTaskCalendar.setOnClickListener(v -> {
+                Intent intent = new Intent(this, TaskCalendarActivity.class);
                 startActivity(intent);
             });
 

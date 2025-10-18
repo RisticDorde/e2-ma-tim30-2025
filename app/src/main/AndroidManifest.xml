@@ -12,6 +12,14 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MA2025">
         <activity
+            android:name=".task.TaskDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".task.TaskCalendarActivity"
+            android:exported="false"
+            android:label="@string/title_activity_task_calendar"
+            android:theme="@style/Theme.MA2025" />
+        <activity
             android:name=".task.TaskListActivity"
             android:exported="false" />
         <activity

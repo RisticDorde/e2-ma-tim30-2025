@@ -4,6 +4,7 @@ import com.example.ma2025.task.TaskDifficulty;
 import com.example.ma2025.task.TaskFrequency;
 import com.example.ma2025.task.TaskImportance;
 import com.example.ma2025.task.TaskIntervalUnit;
+import com.example.ma2025.task.TaskStatus;
 
 import java.time.LocalDate;
 import java.util.Date;
@@ -13,15 +14,21 @@ public class Task {
     private String name;
     private String description;
     private String categoryId;
-    private TaskFrequency frequency;
+
+    private TaskFrequency frequency; //jednokratni ili ponavljajuci
     private int interval;
-    private TaskIntervalUnit intervalUnit;
-    private Date startDate;
-    private Date endDate;
-    private Date executionDate;
+    private TaskIntervalUnit intervalUnit; //day, week, month
+
+    private Date startDate; //kod repetitive
+    private Date endDate; // kod repetitive
+    private Date executionDate; // kod onetime
+
     private TaskDifficulty difficulty;
     private TaskImportance importance;
     private int totalXP;
+
+    private String parentTaskId; // null ako je samostalan inace referenca na repetitive task ciji je dio
+    private TaskStatus taskStatus;
 
     public Task (){}
 
@@ -127,5 +134,21 @@ public class Task {
 
     public void setTotalXP(int totalXP) {
         this.totalXP = totalXP;
+    }
+
+    public String getParentTaskId() {
+        return parentTaskId;
+    }
+
+    public void setParentTaskId(String parentTaskId) {
+        this.parentTaskId = parentTaskId;
+    }
+
+    public TaskStatus getTaskStatus() {
+        return taskStatus;
+    }
+
+    public void setTaskStatus(TaskStatus taskStatus) {
+        this.taskStatus = taskStatus;
     }
 }
