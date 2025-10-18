@@ -12,6 +12,23 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MA2025">
         <activity
+            android:name=".task.TaskDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".task.TaskCalendarActivity"
+            android:exported="false"
+            android:label="@string/title_activity_task_calendar"
+            android:theme="@style/Theme.MA2025" />
+        <activity
+            android:name=".task.TaskListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".task.AddTaskActivity"
+            android:exported="false" />
+        <activity
+            android:name=".category.CategoryActivity"
+            android:exported="false" />
+        <activity
             android:name=".activity.ItemEquipmentActivity"
             android:exported="false" />
         <activity
@@ -20,9 +37,9 @@
         <activity
             android:name=".activity.ShopActivity"
             android:exported="false" />
-        <activity
+        <!--<activity
             android:name=".activity_shop"
-            android:exported="false" />
+            android:exported="false" />-->
         <activity
             android:name=".activity.ChangePasswordActivity"
             android:exported="false" />

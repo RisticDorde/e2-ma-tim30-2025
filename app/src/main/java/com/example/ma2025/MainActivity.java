@@ -1,4 +1,4 @@
-package com.example.ma2025.activity;
+package com.example.ma2025;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -6,7 +6,6 @@ import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.ma2025.R;
 import com.example.ma2025.activity.EquipmentActivity;
 import com.example.ma2025.activity.LoginActivity;
 import com.example.ma2025.activity.ProfileActivity;
@@ -38,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
             // Jedan layout koji ima sva dugmad
             setContentView(R.layout.activity_main);
 
-            // Dugmad iz koleginicinog maina
+            //
             btnProfile = findViewById(R.id.btnProfile);
             btnProfile.setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));
 
