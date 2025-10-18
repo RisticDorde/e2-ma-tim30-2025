@@ -6,8 +6,13 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.example.ma2025.auth.AuthManager;
 import com.example.ma2025.database.DatabaseHelper;
+import com.example.ma2025.model.Clothing;
+import com.example.ma2025.model.Potion;
 import com.example.ma2025.model.User;
+import com.example.ma2025.model.Weapon;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -44,6 +49,10 @@ public class UserRepository {
         values.put(DatabaseHelper.COL_EQUIPMENT, gson.toJson(user.getEquipment()));
         values.put(DatabaseHelper.COL_CURRENT_EQUIPMENT, gson.toJson(user.getCurrentEquipment()));
         values.put(DatabaseHelper.COL_QR_CODE, user.getQrCode());
+        values.put(DatabaseHelper.COL_POTIONS, gson.toJson(user.getPotions()));
+        values.put(DatabaseHelper.COL_WEAPONS, gson.toJson(user.getWeapons()));
+        values.put(DatabaseHelper.COL_CLOTHINGS, gson.toJson(user.getClothings()));
+
 
         long result = db.insert(DatabaseHelper.TABLE_USERS, null, values);
         db.close();
@@ -124,6 +133,10 @@ public class UserRepository {
         values.put(DatabaseHelper.COL_EQUIPMENT, gson.toJson(user.getEquipment()));
         values.put(DatabaseHelper.COL_CURRENT_EQUIPMENT, gson.toJson(user.getCurrentEquipment()));
         values.put(DatabaseHelper.COL_QR_CODE, user.getQrCode());
+        values.put(DatabaseHelper.COL_POTIONS, gson.toJson(user.getPotions()));
+        values.put(DatabaseHelper.COL_WEAPONS, gson.toJson(user.getWeapons()));
+        values.put(DatabaseHelper.COL_CLOTHINGS, gson.toJson(user.getClothings()));
+
 
         int result = db.update(DatabaseHelper.TABLE_USERS, values,
                 DatabaseHelper.COL_ID + " = ?",
@@ -156,6 +169,17 @@ public class UserRepository {
 
         return changePassword(user.getId(), newPassword);
     }
+
+    public User getCurrentAppUser(Context context) {
+        FirebaseUser fbUser = AuthManager.getCurrentUser(context);
+        if (fbUser == null) return null;
+
+        String email = fbUser.getEmail();
+        if (email == null) return null;
+
+        return getUserByEmail(email);
+    }
+
 
     /**
      * Dodaje XP korisniku
@@ -345,6 +369,25 @@ public class UserRepository {
         if (currentEquipmentJson != null && !currentEquipmentJson.isEmpty()) {
             user.setCurrentEquipment(gson.fromJson(currentEquipmentJson, listType));
         }
+
+        String potionsJson = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_POTIONS));
+        if (potionsJson != null && !potionsJson.isEmpty()) {
+            Type potionListType = new TypeToken<ArrayList<Potion>>(){}.getType();
+            user.setPotions(gson.fromJson(potionsJson, potionListType));
+        }
+
+        String weaponsJson = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_WEAPONS));
+        if (weaponsJson != null && !weaponsJson.isEmpty()) {
+            Type weaponListType = new TypeToken<ArrayList<Weapon>>(){}.getType();
+            user.setWeapons(gson.fromJson(weaponsJson, weaponListType));
+        }
+
+        String clothingsJson = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_CLOTHINGS));
+        if (clothingsJson != null && !clothingsJson.isEmpty()) {
+            Type clothingListType = new TypeToken<ArrayList<Clothing>>(){}.getType();
+            user.setClothings(gson.fromJson(clothingsJson, clothingListType));
+        }
+
 
         return user;
     }

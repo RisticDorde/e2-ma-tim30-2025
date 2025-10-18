@@ -18,10 +18,14 @@ public class User {
     private int powerPoints = 10;
     private int experiencePoints = 0;
     private int coins = 0;
-    private List<String> badges = new ArrayList<>();
-    private List<String> equipment = new ArrayList<>();
+
     private List<String> currentEquipment = new ArrayList<>();
     private String qrCode = "";
+    private List<String> badges = new ArrayList<>();
+    private List<String> equipment = new ArrayList<>();
+    private List<Potion> potions = new ArrayList<>();
+    private List<Weapon> weapons = new ArrayList<>();
+    private List<Clothing> clothings = new ArrayList<>();
 
     public User() {}
 
@@ -33,6 +37,7 @@ public class User {
         this.isActive = false;
         this.qrCode = "USER_" + System.currentTimeMillis();
         this.title = Title.fromLevel(this.level.getLevel());
+        this.coins = 100;
     }
 
     public int getId() { return id; }
@@ -132,6 +137,38 @@ public class User {
 
     public void addCoins(int amount) {
         this.coins += amount;
+    }
+
+    public boolean spendCoins(int amount) {
+        if (coins >= amount) {
+            coins -= amount;
+            return true;
+        }
+        return false;
+    }
+
+    public List<Potion> getPotions() {
+        return potions;
+    }
+
+    public void setPotions(List<Potion> potions) {
+        this.potions = potions;
+    }
+
+    public List<Weapon> getWeapons() {
+        return weapons;
+    }
+
+    public void setWeapons(List<Weapon> weapons) {
+        this.weapons = weapons;
+    }
+
+    public List<Clothing> getClothings() {
+        return clothings;
+    }
+
+    public void setClothings(List<Clothing> clothings) {
+        this.clothings = clothings;
     }
 
 

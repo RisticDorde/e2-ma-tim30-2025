@@ -19,10 +19,16 @@ public class MainActivity extends AppCompatActivity {
 
     private Button btnLogout;
     private Button btnProfile;
+    private Button btnShop;
+    private Button btnEquipment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        DatabaseHelper db = new DatabaseHelper(this);
+        db.logAllUsers();
+
 
         // OVO ĆE OTVORITI BAZU
         //DatabaseHelper dbHelper = new DatabaseHelper(this);
@@ -61,6 +67,17 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
+            btnShop = findViewById(R.id.btnShop);
+            btnShop.setOnClickListener(v -> {
+                Intent intent = new Intent(MainActivity.this, ShopActivity.class);
+                startActivity(intent);
+            });
+
+            btnEquipment = findViewById(R.id.btnEquipment);
+            btnEquipment.setOnClickListener(v -> {
+                Intent intent = new Intent(MainActivity.this, EquipmentActivity.class);
+                startActivity(intent);
+            });
         } else {
             // Nije ulogovan → idi na LoginActivity
             Intent intent = new Intent(this, LoginActivity.class);

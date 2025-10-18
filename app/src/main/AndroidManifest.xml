@@ -12,6 +12,18 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MA2025">
         <activity
+            android:name=".activity.ItemEquipmentActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.EquipmentActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.ShopActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity_shop"
+            android:exported="false" />
+        <activity
             android:name=".activity.ChangePasswordActivity"
             android:exported="false" />
         <activity

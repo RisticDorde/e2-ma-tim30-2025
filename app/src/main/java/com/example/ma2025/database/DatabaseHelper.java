@@ -27,6 +27,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COL_EQUIPMENT = "equipment";
     public static final String COL_CURRENT_EQUIPMENT = "current_equipment";
     public static final String COL_QR_CODE = "qr_code";
+    public static final String COL_POTIONS = "potions";
+    public static final String COL_WEAPONS = "weapons";
+    public static final String COL_CLOTHINGS = "clothings";
+
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -50,7 +54,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COL_BADGES + " TEXT DEFAULT '', " +
                 COL_EQUIPMENT + " TEXT DEFAULT '', " +
                 COL_CURRENT_EQUIPMENT + " TEXT DEFAULT '', " + // JSON array kao string
-                COL_QR_CODE + " TEXT DEFAULT ''" +
+                COL_QR_CODE + " TEXT DEFAULT ''," +
+                COL_POTIONS + " TEXT DEFAULT '', " +
+                COL_WEAPONS + " TEXT DEFAULT '', " +
+                COL_CLOTHINGS + " TEXT DEFAULT ''" +
                 ")";
         db.execSQL(CREATE_USERS);
     }
@@ -60,4 +67,35 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
         onCreate(db);
     }
+
+    public void logAllUsers() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        android.database.Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_USERS, null);
+
+        while (cursor.moveToNext()) {
+            int id = cursor.getInt(cursor.getColumnIndexOrThrow(COL_ID));
+            String email = cursor.getString(cursor.getColumnIndexOrThrow(COL_EMAIL));
+            String username = cursor.getString(cursor.getColumnIndexOrThrow(COL_USERNAME));
+            String equipment = cursor.getString(cursor.getColumnIndexOrThrow(COL_EQUIPMENT));
+            String currentEquipment = cursor.getString(cursor.getColumnIndexOrThrow(COL_CURRENT_EQUIPMENT));
+            String qrCode = cursor.getString(cursor.getColumnIndexOrThrow(COL_QR_CODE));
+            String potions = cursor.getString(cursor.getColumnIndexOrThrow(COL_POTIONS));
+            String weapons = cursor.getString(cursor.getColumnIndexOrThrow(COL_WEAPONS));
+            String clothings = cursor.getString(cursor.getColumnIndexOrThrow(COL_CLOTHINGS));
+
+            android.util.Log.d("DB_USER",
+                    "ID: " + id +
+                            " | Email: " + email +
+                            " | Username: " + username +
+                            " | Equipment: " + equipment +
+                            " | Current Equipment: " + currentEquipment +
+                            " | QR Code: " + qrCode +
+                            " | Potions: " + potions +
+                            " | Weapons: " + weapons +
+                            " | Clothings: " + clothings
+            );
+        }
+        cursor.close();
+    }
+
 }

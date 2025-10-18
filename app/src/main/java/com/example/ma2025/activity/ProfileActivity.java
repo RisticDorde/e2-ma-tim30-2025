@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -106,13 +107,45 @@ public class ProfileActivity extends AppCompatActivity {
         levelText.setText("Nivo " + currentUser.getLevelNumber());
         titleText.setText(currentUser.getTitleDisplayName());
 
+        // --- Badges ---
+        LinearLayout badgesContainer = findViewById(R.id.badges_container);
+        badgesContainer.removeAllViews();
+        if (currentUser.getBadges().isEmpty()) {
+            TextView empty = new TextView(this);
+            empty.setText("No badges");
+            badgesContainer.addView(empty);
+        } else {
+            for (String badge : currentUser.getBadges()) {
+                TextView badgeView = new TextView(this);
+                badgeView.setText(badge); // ili možeš staviti sličicu ako imaš drawable
+                badgeView.setPadding(8, 0, 8, 0);
+                badgesContainer.addView(badgeView);
+            }
+        }
+
         int badgeCount = currentUser.getBadges().size();
-        badgesCountText.setText("Bedževi: " + badgeCount);
+        badgesCountText.setText("Badge: " + badgeCount);
+
+        // --- Equipment ---
+        LinearLayout equipmentContainer = findViewById(R.id.equipment_container);
+        equipmentContainer.removeAllViews();
+        if (currentUser.getEquipment().isEmpty()) {
+            TextView empty = new TextView(this);
+            empty.setText("No equipment");
+            equipmentContainer.addView(empty);
+        } else {
+            for (String eq : currentUser.getEquipment()) {
+                TextView eqView = new TextView(this);
+                eqView.setText(eq);
+                eqView.setPadding(0, 4, 0, 4);
+                equipmentContainer.addView(eqView);
+            }
+        }
 
         if (isOwnProfile) {
             ppText.setText("PP: " + currentUser.getPowerPoints());
             xpText.setText("XP: " + currentUser.getExperiencePoints());
-            coinsText.setText("Novčići: " + currentUser.getCoins());
+            coinsText.setText("Coins: " + currentUser.getCoins());
             float progressPercentage = currentUser.getLevelProgressPercentage();
             levelProgressBar.setProgress((int) progressPercentage);
             int currentProgress = currentUser.getCurrentLevelProgress();
