@@ -1,9 +1,14 @@
 package com.example.ma2025.task;
 
+import android.util.Log;
+
 import com.example.ma2025.model.Task;
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -90,9 +95,18 @@ public class TaskRepository {
     }
 
     // Ažuriranje postojećeg zadatka
-    public void updateTask(Task task) {
+    //public void updateTask(Task task) {
+        //if (task.getId() != null) {
+            //taskCollection.document(task.getId()).set(task);
+       // }
+   // }
+
+    public com.google.android.gms.tasks.Task<Void> updateTask(Task task) {
         if (task.getId() != null) {
-            taskCollection.document(task.getId()).set(task);
+            return taskCollection.document(task.getId()).set(task);
+        } else {
+            return com.google.android.gms.tasks.Tasks.forException(
+                    new IllegalArgumentException("Task ID cannot be null"));
         }
     }
 
@@ -100,7 +114,7 @@ public class TaskRepository {
     //public void deleteTask(String taskId) {
         //taskCollection.document(taskId).delete();
     //}
-
+/*
     public void deleteTask(Task task) {
         if (task.getId() == null) return;
 
@@ -118,6 +132,47 @@ public class TaskRepository {
 
         // obriši i sam template
         taskCollection.document(task.getId()).delete();
+    }
+*/
+    public com.google.android.gms.tasks.Task<Void> deleteTask(Task task) {
+        if (task.getId() == null) {
+            return com.google.android.gms.tasks.Tasks.forException(
+                    new IllegalArgumentException("Task ID cannot be null"));
+        }
+
+        if (task.getFrequency() == TaskFrequency.REPETITIVE) {
+            return taskCollection
+                    .whereEqualTo("parentTaskId", task.getId())
+                    .get()
+                    .continueWithTask(queryTask -> {
+                        for (var doc : queryTask.getResult().getDocuments()) {
+                            doc.getReference().delete();
+                        }
+                        return taskCollection.document(task.getId()).delete();
+                    });
+        } else {
+            return taskCollection.document(task.getId()).delete();
+        }
+    }
+
+    public Query getAccomplishedTasksSince(long fromTimestamp) {
+        // Convert fromTimestamp (ms) to Firestore Timestamp
+        com.google.firebase.Timestamp ts = new com.google.firebase.Timestamp(new Date(fromTimestamp));
+
+        // Debug: print timestamp
+        Log.d("TASK_QUERY", "Fetching accomplished tasks since: " + ts.toDate());
+
+        return taskCollection
+                .whereEqualTo("taskStatus", TaskStatus.ACCOMPLISHED.name())
+                .whereGreaterThan("executionDate", ts);
+    }
+
+
+    public Query getUserAccomplishedTasksSince(int userId, long fromTimestamp) {
+        return taskCollection
+                .whereEqualTo("taskStatus", TaskStatus.ACCOMPLISHED.name())
+                .whereEqualTo("userId", userId)
+                .whereGreaterThan("endDate", new com.google.firebase.Timestamp(new Date(fromTimestamp)));
     }
 
     public DocumentReference getTaskById(String taskId) {
