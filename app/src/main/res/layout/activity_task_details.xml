@@ -39,6 +39,24 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
+        <TextView
+            android:id="@+id/label_total_xp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="XP:"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp" />
+
+        <EditText
+            android:id="@+id/input_total_xp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:enabled="false"
+            android:focusable="false"
+            android:backgroundTint="#ffffff" />
+
+
         <Spinner
             android:id="@+id/spinnerImportance"
             android:layout_width="match_parent"
