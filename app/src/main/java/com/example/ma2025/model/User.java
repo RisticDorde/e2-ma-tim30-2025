@@ -1,5 +1,9 @@
 package com.example.ma2025.model;
 
+import android.util.Log;
+
+import com.example.ma2025.repository.UserRepository;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,7 +40,7 @@ public class User {
         this.avatar = avatar;
         this.isActive = false;
         this.qrCode = "USER_" + System.currentTimeMillis();
-        this.title = Title.fromLevel(this.level.getLevel());
+        this.title = Title.fromLevel(this.level.getLevelNumber());
         this.coins = 100;
     }
 
@@ -72,14 +76,14 @@ public class User {
     public Level getLevel() { return level; }
     public void setLevel(Level level) {
         this.level = level;
-        this.title = Title.fromLevel(level.getLevel());
+        this.title = Title.fromLevel(level.getLevelNumber());
     }
 
     public Title getTitle() { return title; }
     public void setTitle(Title title) { this.title = title; }
 
     public int getLevelNumber() {
-        return level.getLevel();
+        return level.getLevelNumber();
     }
 
     public String getTitleDisplayName() {
@@ -92,10 +96,6 @@ public class User {
     public int getExperiencePoints() { return experiencePoints; }
     public void setExperiencePoints(int experiencePoints) {
         this.experiencePoints = experiencePoints;
-        Level newLevel = Level.fromExperience(experiencePoints);
-        if (newLevel.getLevel() != this.level.getLevel()) {
-            setLevel(newLevel);
-        }
     }
 
     public int getCoins() { return coins; }
@@ -114,11 +114,11 @@ public class User {
     public void setQrCode(String qrCode) { this.qrCode = qrCode; }
 
     public int getCurrentLevelProgress() {
-        return experiencePoints - level.getMinXp();
+        return experiencePoints - LevelCalculator.getMinXpForLevel(this.level.getLevelNumber());
     }
 
     public int getNextLevelRequiredXp() {
-        return level.getMaxXp() - level.getMinXp();
+        return LevelCalculator.getMaxXpForLevel(this.level.getLevelNumber()) - LevelCalculator.getMinXpForLevel(this.level.getLevelNumber());
     }
 
     public float getLevelProgressPercentage() {
@@ -126,14 +126,44 @@ public class User {
         int required = getNextLevelRequiredXp();
         return required > 0 ? (float) progress / required * 100 : 0;
     }
+    public void addExperience(int xpToAdd, boolean defeatedBoss, int coinsRewardIfBoss, UserRepository userRepo) {
+        this.experiencePoints += xpToAdd;
 
-    public void addExperience(int xp) {
-        this.experiencePoints += xp;
-        Level newLevel = Level.fromExperience(experiencePoints);
-        if (newLevel.getLevel() != this.level.getLevel()) {
-            setLevel(newLevel);
+        Log.d("TaskDetails", "XP = " + this.experiencePoints);
+        boolean leveledUp = false;
+        while (true) {
+            int currentLevelNumber = this.level.getLevelNumber();
+            int maxXpForCurrent = LevelCalculator.getMaxXpForLevel(currentLevelNumber);
+
+            if (this.experiencePoints >= maxXpForCurrent) {
+                leveledUp = true;
+                int nextLevelNumber = currentLevelNumber + 1;
+                this.setLevel(Level.fromLevelNumber(nextLevelNumber));
+
+                if (currentLevelNumber == 1) {
+                    // prvi prelazak → 40 PP
+                    this.powerPoints += 40;
+                } else {
+                    // svako sledeće → formula
+                    int previousReward = this.powerPoints; // trenutna vrednost PP
+                    int reward = (int) (previousReward + (0.75 * previousReward));
+                    this.powerPoints = reward;
+                }
+
+                if (defeatedBoss) {
+                    this.coins += coinsRewardIfBoss;
+                }
+            } else {
+                break;
+            }
         }
+        userRepo.updateUser(this);
     }
+
+    public void addExperience(int xpToAdd, UserRepository userRepo) {
+        addExperience(xpToAdd, false, 0, userRepo);
+    }
+
 
     public void addCoins(int amount) {
         this.coins += amount;
@@ -175,11 +205,11 @@ public class User {
 
     // ENUM za Title
     public enum Title {
-        NOVICE("Početnik"),
-        ADVENTURER("Avanturista"),
-        WARRIOR("Ratnik"),
-        MASTER("Majstor"),
-        LEGEND("Legenda");
+        NOVICE("Beginner"),
+        ADVENTURER("Apprentice"),
+        WARRIOR("Warrior"),
+        MASTER("Knight"),
+        LEGEND("Legend");
 
         private final String displayName;
 
@@ -201,47 +231,32 @@ public class User {
         }
     }
 
-    // ENUM za Level unutar User klase
     public enum Level {
-        LEVEL_1(1, 0, 100),
-        LEVEL_2(2, 100, 200),
-        LEVEL_3(3, 200, 450),
-        LEVEL_4(4, 450, 750),
-        LEVEL_5(5, 750, 1000);
+        LEVEL_1(1),
+        LEVEL_2(2),
+        LEVEL_3(3),
+        LEVEL_4(4),
+        LEVEL_5(5);
 
-        private final int level;
-        private final int minXp;
-        private final int maxXp;
-
-        Level(int level, int minXp, int maxXp) {
-            this.level = level;
-            this.minXp = minXp;
-            this.maxXp = maxXp;
+        private final int levelNumber;
+        Level(int levelNumber)
+        {
+            this.levelNumber = levelNumber;
+        }
+        public int getLevelNumber()
+        {
+            return levelNumber;
         }
 
-        public int getLevel() { return level; }
-        public int getMinXp() { return minXp; }
-        public int getMaxXp() { return maxXp; }
-
-        // Dobijanje levela na osnovu XP
-        public static Level fromExperience(int experience) {
-            for (Level level : values()) {
-                if (experience >= level.minXp && experience < level.maxXp) {
-                    return level;
-                }
-            }
-            // Ako je experience veći od najvećeg, vrati najviši level
-            return LEVEL_5;
-        }
-
-        // Dobijanje Level enum na osnovu broja
         public static Level fromLevelNumber(int levelNumber) {
             for (Level level : values()) {
-                if (level.getLevel() == levelNumber) {
+                if (level.getLevelNumber() == levelNumber) {
                     return level;
                 }
             }
-            return LEVEL_1; // default
+            return LEVEL_1; // default ako nije pronađen
         }
     }
+
+
 }

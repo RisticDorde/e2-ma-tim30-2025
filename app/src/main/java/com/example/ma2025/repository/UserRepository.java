@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import com.example.ma2025.auth.AuthManager;
 import com.example.ma2025.database.DatabaseHelper;
@@ -12,21 +13,27 @@ import com.example.ma2025.model.Clothing;
 import com.example.ma2025.model.Potion;
 import com.example.ma2025.model.User;
 import com.example.ma2025.model.Weapon;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class UserRepository {
     private DatabaseHelper dbHelper;
     private Gson gson;
+    private FirebaseFirestore firestore;
 
     public UserRepository(Context context) {
         this.dbHelper = new DatabaseHelper(context);
         this.gson = new Gson();
+        this.firestore = FirebaseFirestore.getInstance();
     }
 
     public long createUser(User user) {
@@ -38,8 +45,6 @@ public class UserRepository {
         values.put(DatabaseHelper.COL_PASSWORD, user.getPassword());
         values.put(DatabaseHelper.COL_AVATAR, user.getAvatar());
         values.put(DatabaseHelper.COL_IS_ACTIVE, user.isActive() ? 1 : 0);
-
-        // Profilni podaci
         values.put(DatabaseHelper.COL_LEVEL, user.getLevelNumber());
         values.put(DatabaseHelper.COL_TITLE, user.getTitle().name());
         values.put(DatabaseHelper.COL_POWER_POINTS, user.getPowerPoints());
@@ -53,10 +58,45 @@ public class UserRepository {
         values.put(DatabaseHelper.COL_WEAPONS, gson.toJson(user.getWeapons()));
         values.put(DatabaseHelper.COL_CLOTHINGS, gson.toJson(user.getClothings()));
 
-
         long result = db.insert(DatabaseHelper.TABLE_USERS, null, values);
         db.close();
+
+        // Upis i u Firestore
+        saveUserToFirestore(user);
+
         return result;
+    }
+
+    private void saveUserToFirestore(User user) {
+        Map<String, Object> userMap = new HashMap<>();
+        userMap.put("email", user.getEmail());
+        userMap.put("username", user.getUsername());
+        userMap.put("password", user.getPassword());
+        userMap.put("avatar", user.getAvatar());
+        userMap.put("isActive", user.isActive());
+        userMap.put("level", user.getLevelNumber());
+        userMap.put("title", user.getTitle().name());
+        userMap.put("powerPoints", user.getPowerPoints());
+        userMap.put("experiencePoints", user.getExperiencePoints());
+        userMap.put("coins", user.getCoins());
+        userMap.put("badges", gson.toJson(user.getBadges()));
+        userMap.put("equipment", gson.toJson(user.getEquipment()));
+        userMap.put("currentEquipment", gson.toJson(user.getCurrentEquipment()));
+        userMap.put("qrCode", user.getQrCode());
+        userMap.put("potions", gson.toJson(user.getPotions()));
+        userMap.put("weapons", gson.toJson(user.getWeapons()));
+        userMap.put("clothings", gson.toJson(user.getClothings()));
+        userMap.put("createdAt", user.getCreatedAt());
+
+        firestore.collection("users")
+                .document(user.getEmail())
+                .set(userMap)
+                .addOnSuccessListener(aVoid -> {
+                    // Opcionalno: Log success
+                })
+                .addOnFailureListener(e -> {
+                    // Opcionalno: Log failure
+                });
     }
 
     public User getUserByEmail(String email) {
@@ -118,12 +158,12 @@ public class UserRepository {
      * Ažurira korisnički profil
      */
     public boolean updateUser(User user) {
+        Log.d("UPDATE", "*****************************Updating user with ID=" + user.getId());
+
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
         ContentValues values = new ContentValues();
         values.put(DatabaseHelper.COL_IS_ACTIVE, user.isActive() ? 1 : 0);
-
-        // Profilni podaci
         values.put(DatabaseHelper.COL_LEVEL, user.getLevelNumber());
         values.put(DatabaseHelper.COL_TITLE, user.getTitle().name());
         values.put(DatabaseHelper.COL_POWER_POINTS, user.getPowerPoints());
@@ -137,37 +177,116 @@ public class UserRepository {
         values.put(DatabaseHelper.COL_WEAPONS, gson.toJson(user.getWeapons()));
         values.put(DatabaseHelper.COL_CLOTHINGS, gson.toJson(user.getClothings()));
 
-
-        int result = db.update(DatabaseHelper.TABLE_USERS, values,
+        int result = db.update(
+                DatabaseHelper.TABLE_USERS,
+                values,
                 DatabaseHelper.COL_ID + " = ?",
-                new String[]{String.valueOf(user.getId())});
+                new String[]{String.valueOf(user.getId())}
+        );
+
+        Log.d("UPDATE", "#################################Result = " + result);
 
         db.close();
+
+        if (result > 0) {
+            updateUserInFirestore(user);
+        }
+
         return result > 0;
     }
+
+    private void updateUserInFirestore(User user) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("isActive", user.isActive());
+        updates.put("level", user.getLevelNumber());
+        updates.put("title", user.getTitle().name());
+        updates.put("powerPoints", user.getPowerPoints());
+        updates.put("experiencePoints", user.getExperiencePoints());
+        updates.put("coins", user.getCoins());
+        updates.put("badges", gson.toJson(user.getBadges()));
+        updates.put("equipment", gson.toJson(user.getEquipment()));
+        updates.put("currentEquipment", gson.toJson(user.getCurrentEquipment()));
+        updates.put("qrCode", user.getQrCode());
+        updates.put("potions", gson.toJson(user.getPotions()));
+        updates.put("weapons", gson.toJson(user.getWeapons()));
+        updates.put("clothings", gson.toJson(user.getClothings()));
+
+        firestore.collection("users")
+                .document(user.getEmail())
+                .update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("Firestore", "******************Korisnik uspešno ažuriran u Firestore.");
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Firestore", "*******************Greška pri ažuriranju korisnika: " + e.getMessage());
+                });
+    }
+
 
     /**
      * Menja lozinku korisnika
      */
-    public boolean changePassword(int userId, String newPassword) {
+    public boolean changePassword(String email, String newPassword) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
         ContentValues values = new ContentValues();
         values.put(DatabaseHelper.COL_PASSWORD, newPassword);
 
-        int result = db.update(DatabaseHelper.TABLE_USERS, values,
-                DatabaseHelper.COL_ID + " = ?",
-                new String[]{String.valueOf(userId)});
+        int result = db.update(
+                DatabaseHelper.TABLE_USERS,
+                values,
+                DatabaseHelper.COL_EMAIL + " = ?",
+                new String[]{email}
+        );
 
         db.close();
+
+        if (result > 0) {
+            // 1. Ažuriraj lozinku i u Firestore
+            updatePasswordInFirestore(email, newPassword);
+
+            // 2. Ažuriraj lozinku i u Firebase Authentication
+            updatePasswordInFirebaseAuth(newPassword);
+        }
+
         return result > 0;
     }
+
+    private void updatePasswordInFirebaseAuth(String newPassword) {
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (firebaseUser != null) {
+            firebaseUser.updatePassword(newPassword)
+                    .addOnSuccessListener(aVoid -> {
+                        // Lozinka uspešno promenjena
+                    })
+                    .addOnFailureListener(e -> {
+                        // Na primer, traži ponovnu prijavu ako je sesija stara
+                        // e.getMessage() može biti "Recent login required"
+                    });
+        }
+    }
+
+    private void updatePasswordInFirestore(String email, String newPassword) {
+        User user = getUserByEmail(email);
+        if (user == null) return;
+
+        firestore.collection("users")
+                .document(user.getEmail())
+                .update("password", newPassword)
+                .addOnSuccessListener(aVoid -> {
+                    // success
+                })
+                .addOnFailureListener(e -> {
+                    // handle failure
+                });
+    }
+
 
     public boolean changePasswordByEmail(String email, String newPassword) {
         User user = getUserByEmail(email);
         if (user == null) return false;
 
-        return changePassword(user.getId(), newPassword);
+        return changePassword(email, newPassword);
     }
 
     public User getCurrentAppUser(Context context) {
@@ -180,17 +299,6 @@ public class UserRepository {
         return getUserByEmail(email);
     }
 
-
-    /**
-     * Dodaje XP korisniku
-     */
-    public boolean addExperience(int userId, int xp) {
-        User user = getUserById(userId);
-        if (user == null) return false;
-
-        user.addExperience(xp);
-        return updateUser(user);
-    }
 
     /**
      * Dodaje novčiće korisniku
