@@ -27,7 +27,6 @@ public class TaskDetailsActivity extends AppCompatActivity {
     private EditText etName, etDescription, etExecutionDate, etStartDate, etEndDate, inputTotalXp;
     private Button btnEdit, btnSave, btnDelete;
     private Spinner spinnerDifficulty, spinnerImportance, spinnerStatus;
-
     private TaskRepository taskRepository;
     private UserRepository userRepository;
     private String taskId;
@@ -155,6 +154,8 @@ public class TaskDetailsActivity extends AppCompatActivity {
                     Toast.makeText(this, "Zadatak ažuriran", Toast.LENGTH_SHORT).show();
                     enableEditing(false);
 
+                    Log.d("TaskDetails", "oldStatus=" + oldStatus + " newStatus=" + newStatus);
+
                     if (oldStatus != TaskStatus.ACCOMPLISHED && newStatus == TaskStatus.ACCOMPLISHED) {
                         checkAndAwardXp(currentTask);
                     }
@@ -230,7 +231,7 @@ private void checkAndAwardXp(Task task) {
     TaskDifficulty diff = task.getDifficulty();
     TaskImportance imp = task.getImportance();
 
-    // kvota i period
+    //  Ograničenja po težini i važnosti zadatka
     if ((diff == TaskDifficulty.VERY_EASY || imp == TaskImportance.NORMAL) ||
             (diff == TaskDifficulty.EASY || imp == TaskImportance.IMPORTANT)) {
         limit = 5;
@@ -252,27 +253,40 @@ private void checkAndAwardXp(Task task) {
     long now = System.currentTimeMillis();
     long fromTime = now - timeLimitMs;
 
-    // 🔹 Dohvati trenutno prijavljenog korisnika iz Firebase Auth
+    //  Dohvati trenutno prijavljenog korisnika iz lokalne baze
     User currentUser = userRepository.getCurrentAppUser(this);
     if (currentUser == null) {
         Toast.makeText(this, "Korisnik nije prijavljen.", Toast.LENGTH_SHORT).show();
         return;
     }
 
-    // 🔹 Firestore: proveri koliko je već accomplished zadataka u periodu
+    //  Firestore: proveri koliko je već accomplished zadataka u periodu
     taskRepository.getAccomplishedTasksSince(fromTime)
             .get()
             .addOnSuccessListener(querySnapshot -> {
                 int count = querySnapshot.size();
 
+                Log.d("TaskDetails", "Count vrednost = " + count);
+                Log.d("TaskDetails", "Limit vrednost = " + limit);
+
+
                 if (count < limit) {
-                    // 🔹 XP ide u SQLite po email-u
-                    boolean ok = userRepository.addExperience(currentUser.getId(), xp);
-                    if (ok) {
-                        Toast.makeText(this, "XP dodat! +" + xp, Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(this, "Greška pri dodavanju XP-a.", Toast.LENGTH_SHORT).show();
-                    }
+                    //  Koristi metodu iz User klase koja računa XP i nivo
+                    // Ako je zadatak “boss fight”, stavi true i dodaj nagradu u coinsima
+                    /*boolean isBossFight = task.isBossFight(); // ako nemaš, možeš dodati u Task model
+                    int rewardCoins = isBossFight ? 100 : 0;
+
+                    currentUser.addExperience(xp, isBossFight, rewardCoins, userRepository);
+                    */
+                    Log.d("TaskDetails", "**********************USAO U METODU!!!");
+                    currentUser.addExperience(xp, false, 0, userRepository);
+                    // Obavesti korisnika o napretku
+                    Toast.makeText(this,
+                            "XP dodat! +" + xp + "\nTrenutni nivo: " +
+                                    currentUser.getLevelNumber() +
+                                    " (" + currentUser.getExperiencePoints() + " XP)",
+                            Toast.LENGTH_LONG).show();
+
                 } else {
                     Toast.makeText(this, "Dostignut limit za ovaj tip zadatka.", Toast.LENGTH_SHORT).show();
                 }
@@ -280,7 +294,8 @@ private void checkAndAwardXp(Task task) {
             .addOnFailureListener(e ->
                     Toast.makeText(this, "Greška pri proveri limita XP-a.", Toast.LENGTH_SHORT).show()
             );
-}
+    }
+
 
 
     private void addXpToUser(int xp) {
@@ -309,8 +324,10 @@ private void checkAndAwardXp(Task task) {
         }).addOnSuccessListener(aVoid -> {
             Toast.makeText(this, "Dodato " + xp + " XP!", Toast.LENGTH_SHORT).show();
         }).addOnFailureListener(e -> {
+            Log.e("TaskDetails", "Greška pri dodavanju XP-a", e);
             Toast.makeText(this, "Greška pri dodavanju XP-a: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         });
+
     }
 
 

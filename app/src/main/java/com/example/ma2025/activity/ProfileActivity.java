@@ -15,6 +15,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.ma2025.R;
+import com.example.ma2025.database.DatabaseHelper;
 import com.example.ma2025.model.User;
 import com.example.ma2025.repository.UserRepository;
 import com.google.firebase.auth.FirebaseAuth;
@@ -42,6 +43,9 @@ public class ProfileActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
+
+        DatabaseHelper dbHelper = new DatabaseHelper(this);
+        dbHelper.logAllUsers();
 
         userRepo = new UserRepository(this);
         initViews();

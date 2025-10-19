@@ -82,6 +82,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             String potions = cursor.getString(cursor.getColumnIndexOrThrow(COL_POTIONS));
             String weapons = cursor.getString(cursor.getColumnIndexOrThrow(COL_WEAPONS));
             String clothings = cursor.getString(cursor.getColumnIndexOrThrow(COL_CLOTHINGS));
+            String xp = cursor.getString((cursor.getColumnIndexOrThrow(COL_EXPERIENCE_POINTS)));
 
             android.util.Log.d("DB_USER",
                     "ID: " + id +
@@ -92,7 +93,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                             " | QR Code: " + qrCode +
                             " | Potions: " + potions +
                             " | Weapons: " + weapons +
-                            " | Clothings: " + clothings
+                            " | Clothings: " + clothings +
+                            " | XP: " + xp
             );
         }
         cursor.close();
