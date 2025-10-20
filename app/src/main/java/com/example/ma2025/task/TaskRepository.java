@@ -94,6 +94,10 @@ public class TaskRepository {
         return taskCollection;
     }
 
+    public Query getAllTasksByUserId(String userId){
+        return taskCollection.whereEqualTo("userId", userId);
+    }
+
     // Ažuriranje postojećeg zadatka
     //public void updateTask(Task task) {
         //if (task.getId() != null) {

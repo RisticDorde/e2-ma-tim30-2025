@@ -44,6 +44,7 @@ public class CategoryActivity extends AppCompatActivity {
         setContentView(R.layout.activity_category);
         currentUserId = AuthManager.getCurrentUser(this).getUid();
         repository = new CategoryRepository();
+        refreshUsedColors();
 
         recyclerView = findViewById(R.id.recyclerViewCategories);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -137,7 +138,7 @@ public class CategoryActivity extends AppCompatActivity {
     }
 
     private void refreshUsedColors() {
-        repository.getAllCategories().get().addOnSuccessListener(queryDocumentSnapshots -> {
+        repository.getCategoriesByUserId(currentUserId).get().addOnSuccessListener(queryDocumentSnapshots -> {
             List<String> colors = new ArrayList<>();
             for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                 Category c = doc.toObject(Category.class);
