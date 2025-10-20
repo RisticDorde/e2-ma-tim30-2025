@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.applandeo.materialcalendarview.CalendarView;
 import com.applandeo.materialcalendarview.EventDay;
 import com.example.ma2025.R;
+import com.example.ma2025.auth.AuthManager;
 import com.example.ma2025.category.CategoryRepository;
 import com.example.ma2025.model.Category;
 import com.example.ma2025.model.Task;
@@ -30,6 +31,7 @@ public class TaskCalendarActivity extends AppCompatActivity {
     private CategoryRepository categoryRepository;
     private Map<String, Category> categoryMap = new HashMap<>();
     private TaskRepository taskRepository;
+    private String currentUserId;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -40,6 +42,8 @@ public class TaskCalendarActivity extends AppCompatActivity {
         categoryRepository = new CategoryRepository();
         taskRepository = new TaskRepository();
 
+        currentUserId = AuthManager.getCurrentUser(this).getUid();
+
         loadCategoriesThenTasks();
 
         calendarView.setOnDayClickListener(eventDay -> {
@@ -49,7 +53,7 @@ public class TaskCalendarActivity extends AppCompatActivity {
     }
 
     private void loadCategoriesThenTasks() {
-        categoryRepository.getAllCategories()
+        categoryRepository.getCategoriesByUserId(currentUserId)
                 .get()
                 .addOnSuccessListener(query -> {
                     categoryMap.clear();
@@ -68,7 +72,7 @@ public class TaskCalendarActivity extends AppCompatActivity {
     }
 
     private void loadTasksToCalendar() {
-        taskRepository.getAllTasks()
+        taskRepository.getAllTasksByUserId(currentUserId)
                 .get()
                 .addOnSuccessListener(snapshot -> {
                     List<EventDay> events = new ArrayList<>();
