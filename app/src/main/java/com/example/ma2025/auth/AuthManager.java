@@ -26,7 +26,7 @@ public class AuthManager {
         return FirebaseAuth.getInstance();
     }
 
-    public static void registerUser(Context context, String email, String password, String username, int avatar) {
+    public static void registerUser(Context context, String email, String password, String username, String avatar) {
         FirebaseAuth mAuth = getAuthInstance(context);
 
         mAuth.createUserWithEmailAndPassword(email, password)

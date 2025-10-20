@@ -8,6 +8,7 @@ public class Potion {
     private int duration;          // koliko borbi traje (1 za jednokratni, -1 za trajni)
     private boolean isActivated;   // da li je aktiviran
 
+    public Potion(){}
     public Potion(String name, boolean isSingleUse, double powerBonus, int price, int duration) {
         this.name = name;
         this.isSingleUse = isSingleUse;

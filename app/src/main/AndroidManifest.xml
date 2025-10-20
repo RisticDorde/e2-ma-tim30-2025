@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MA2025">
         <activity
+            android:name=".activity.FriendsListActivity"
+            android:exported="false" />
+        <activity
             android:name=".task.TaskDetailsActivity"
             android:exported="false" />
         <activity
@@ -37,9 +40,11 @@
         <activity
             android:name=".activity.ShopActivity"
             android:exported="false" />
-        <!--<activity
+        <!--
+<activity
             android:name=".activity_shop"
-            android:exported="false" />-->
+            android:exported="false" />
+        -->
         <activity
             android:name=".activity.ChangePasswordActivity"
             android:exported="false" />

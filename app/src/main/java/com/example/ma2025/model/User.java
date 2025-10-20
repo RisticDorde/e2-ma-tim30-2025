@@ -12,7 +12,7 @@ public class User {
     private String email;
     private String username;
     private String password;
-    private int avatar;
+    private String avatar;
     private boolean isActive;
     private String createdAt;
 
@@ -33,7 +33,7 @@ public class User {
 
     public User() {}
 
-    public User(String email, String username, String password, int avatar) {
+    public User(String email, String username, String password, String avatar) {
         this.email = email;
         this.username = username;
         this.password = password;
@@ -57,12 +57,11 @@ public class User {
         }
     }
 
-    public int getAvatar() { return avatar; }
-    public void setAvatar(int avatar) {
-        if (this.id == 0) {
-            this.avatar = avatar;
-        }
+    public String getAvatar() { return avatar; }
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
     }
+
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }

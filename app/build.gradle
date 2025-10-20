@@ -29,6 +29,7 @@ android {
     }
     buildFeatures {
         compose true
+        viewBinding true
     }
 }
 
@@ -49,6 +50,7 @@ dependencies {
     // Avatar
     implementation 'de.hdodenhof:circleimageview:3.1.0'
     implementation 'com.google.code.gson:gson:2.10.1'
+
     //kalendar
     implementation 'com.applandeo:material-calendar-view:1.9.2'
 }
