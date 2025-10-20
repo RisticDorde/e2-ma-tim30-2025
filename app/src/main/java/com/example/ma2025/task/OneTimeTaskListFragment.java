@@ -18,6 +18,10 @@ import com.example.ma2025.model.Category;
 import com.example.ma2025.model.Task;
 import com.google.firebase.firestore.ListenerRegistration;
 
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -80,7 +84,10 @@ public class OneTimeTaskListFragment extends Fragment {
                                 for (var doc : snapshots) {
                                     Task task = doc.toObject(Task.class);
                                     task.setId(doc.getId());
-                                    if (task.getFrequency() == TaskFrequency.ONETIME && (task.getParentTaskId() == null || task.getParentTaskId().isEmpty())) {
+                                    boolean isTodayOrFuture = !task.getExecutionDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isBefore(LocalDate.now());
+
+                                    if (task.getFrequency() == TaskFrequency.ONETIME && (task.getParentTaskId() == null || task.getParentTaskId().isEmpty())
+                                    && isTodayOrFuture) {
                                         taskList.add(task);
                                     }
                                 }

@@ -126,7 +126,12 @@ public class TaskCalendarActivity extends AppCompatActivity {
                         boolean sameDay = execCal.get(Calendar.YEAR) == clicked.get(Calendar.YEAR)
                                 && execCal.get(Calendar.DAY_OF_YEAR) == clicked.get(Calendar.DAY_OF_YEAR);
 
-                        if (sameDay) tasksForDate.add(task);
+                        if (sameDay) {
+                            if(task.getUserId() != null && !task.getUserId().isEmpty()){
+                                 if (task.getUserId().equals(AuthManager.getCurrentUser(this).getUid())) tasksForDate.add(task);
+                            }
+
+                        }
                     }
 
                     if (tasksForDate.isEmpty()) {
@@ -139,6 +144,13 @@ public class TaskCalendarActivity extends AppCompatActivity {
                         Toast.makeText(this, msg.toString(), Toast.LENGTH_LONG).show();
                     }
                 });
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+
+        loadTasksToCalendar();
     }
 
     private Drawable createColoredDot(int color) {

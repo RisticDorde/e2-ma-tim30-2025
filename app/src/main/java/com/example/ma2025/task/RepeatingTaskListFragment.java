@@ -18,6 +18,8 @@ import com.example.ma2025.model.Category;
 import com.example.ma2025.model.Task;
 import com.google.firebase.firestore.ListenerRegistration;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -81,7 +83,12 @@ public class RepeatingTaskListFragment extends Fragment {
                                     Task task = doc.toObject(Task.class);
                                     task.setId(doc.getId());
                                     if (task.getFrequency() == TaskFrequency.REPETITIVE) {
-                                        taskList.add(task);
+                                        if (task.getEndDate() != null) {
+                                            boolean isTodayOrFuture = !task.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isBefore(LocalDate.now());
+                                            if (isTodayOrFuture) {
+                                                taskList.add(task);
+                                            }
+                                        }
                                     }
                                 }
                                 adapter.notifyDataSetChanged();
