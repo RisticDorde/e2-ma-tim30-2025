@@ -31,6 +31,10 @@ public class User {
     private List<Weapon> weapons = new ArrayList<>();
     private List<Clothing> clothings = new ArrayList<>();
 
+    private int currentBossIndex;
+    private long bossRemainingHp;
+    private String lastLevelUpAt;
+
     public User() {}
 
     public User(String email, String username, String password, String avatar) {
@@ -42,6 +46,9 @@ public class User {
         this.qrCode = "USER_" + System.currentTimeMillis();
         this.title = Title.fromLevel(this.level.getLevelNumber());
         this.coins = 100;
+        this.currentBossIndex = 0;
+        this.bossRemainingHp = 0;
+        //this.lastLevelUpAt
     }
 
     public int getId() { return id; }
@@ -150,11 +157,33 @@ public class User {
                 if (defeatedBoss) {
                     this.coins += coinsRewardIfBoss;
                 }
+
+                // Logika boss index
+                if (this.currentBossIndex == 0 && nextLevelNumber >= 2) {
+                    // otključava se prvi boss
+                    this.currentBossIndex = 1;
+                    this.bossRemainingHp = 200; // prvi boss HP
+                } else if (nextLevelNumber > 2 && this.bossRemainingHp == 0) {
+                    // prelazak na naredni boss samo ako prethodni boss poražen
+                    this.currentBossIndex = nextLevelNumber - 1;
+                    this.bossRemainingHp = computeBossHpForIndex(this.currentBossIndex);
+                }
+
             } else {
                 break;
             }
         }
         userRepo.updateUser(this);
+    }
+
+    // helper za HP bossa po indexu
+    private int computeBossHpForIndex(int index) {
+        if (index == 1) return 200; // prvi boss
+        int prevHp = 200;
+        for (int i = 2; i <= index; i++) {
+            prevHp = prevHp * 2 + prevHp / 2;
+        }
+        return prevHp;
     }
 
     public void addExperience(int xpToAdd, UserRepository userRepo) {
@@ -173,6 +202,26 @@ public class User {
         }
         return false;
     }
+
+    public boolean canFightBoss() {
+        Log.d("BossCheck", "currentBossIndex = " + this.currentBossIndex);
+        Log.d("BossCheck", "bossRemainingHp = " + this.bossRemainingHp);
+        Log.d("BossCheck", "level = " + this.level.getLevelNumber());
+
+        if (this.currentBossIndex == 0) {
+            Log.d("BossCheck", "Nema bossa još → vraćam false");
+            return false; // još nema bossa
+        }
+        if (this.bossRemainingHp > 0) {
+            Log.d("BossCheck", "Preostao HP bossa → vraćam true");
+            return true;    // preostao HP → mora se boriti
+        }
+        int requiredLevel = this.currentBossIndex + 1; // boss i level logika
+        boolean canFight = this.level.getLevelNumber() >= requiredLevel;
+        Log.d("BossCheck", "requiredLevel = " + requiredLevel + ", canFight = " + canFight);
+        return canFight;
+    }
+
 
     public List<Potion> getPotions() {
         return potions;
@@ -198,7 +247,29 @@ public class User {
         this.clothings = clothings;
     }
 
+    public int getCurrentBossIndex() {
+        return currentBossIndex;
+    }
 
+    public void setCurrentBossIndex(int currentBossIndex) {
+        this.currentBossIndex = currentBossIndex;
+    }
+
+    public long getBossRemainingHp() {
+        return bossRemainingHp;
+    }
+
+    public void setBossRemainingHp(long bossRemainingHp) {
+        this.bossRemainingHp = bossRemainingHp;
+    }
+
+    public String getLastLevelUpAt() {
+        return lastLevelUpAt;
+    }
+
+    public void setLastLevelUpAt(String lastLevelUpAt) {
+        this.lastLevelUpAt = lastLevelUpAt;
+    }
 
     // ENUM za Title
     public enum Title {

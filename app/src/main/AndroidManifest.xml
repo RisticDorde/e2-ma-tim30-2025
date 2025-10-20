@@ -15,6 +15,9 @@
             android:name=".activity.FriendsListActivity"
             android:exported="false" />
         <activity
+            android:name=".boss.BattleActivity"
+            android:exported="false" />
+        <activity
             android:name=".task.TaskDetailsActivity"
             android:exported="false" />
         <activity

@@ -30,6 +30,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COL_POTIONS = "potions";
     public static final String COL_WEAPONS = "weapons";
     public static final String COL_CLOTHINGS = "clothings";
+    public static final String COL_CURRENT_BOSS_INDEX = "current_boss_index";
+    public static final String COL_BOSS_REMAINING_HP = "boss_remaining_hp";
+    public static final String COL_LAST_LEVEL_UP = "last_level_up_at";
 
 
     public DatabaseHelper(Context context) {
@@ -58,6 +61,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COL_POTIONS + " TEXT DEFAULT '', " +
                 COL_WEAPONS + " TEXT DEFAULT '', " +
                 COL_CLOTHINGS + " TEXT DEFAULT ''" +
+                COL_CURRENT_BOSS_INDEX + " TEXT DEFAULT ''" +
+                COL_BOSS_REMAINING_HP + " TEXT DEFAULT ''" +
+                COL_LAST_LEVEL_UP + " TEXT DEFAULT ''" +
                 ")";
         db.execSQL(CREATE_USERS);
     }
