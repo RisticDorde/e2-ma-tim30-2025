@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MA2025">
         <activity
+            android:name=".activity.FriendsListActivity"
+            android:exported="false" />
+        <activity
             android:name=".boss.BattleActivity"
             android:exported="false" />
         <activity

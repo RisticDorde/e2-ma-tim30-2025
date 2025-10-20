@@ -9,6 +9,7 @@ public class Weapon {
     private int upgradeLevel;     // koliko puta je unapređeno
 
     // Konstruktor
+    public Weapon(){}
     public Weapon(String name, String type, double bonus, double dropChance) {
         this.name = name;
         this.type = type;

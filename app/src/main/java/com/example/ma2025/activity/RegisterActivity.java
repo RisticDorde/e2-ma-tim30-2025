@@ -21,8 +21,7 @@ public class RegisterActivity extends AppCompatActivity {
     private EditText editEmail, editUsername, editPassword, editConfirmPassword;
     private Button btnRegister;
     private GridLayout avatarContainer; // PROMENJEN TIP
-    private int selectedAvatar = R.drawable.avatar_1; // Default avatar
-
+    private String selectedAvatar = "avatar_1";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,13 +43,14 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void setupAvatarSelection() {
-        int[] avatarResources = {
-                R.drawable.avatar_1,
-                R.drawable.avatar_2,
-                R.drawable.avatar_3,
-                R.drawable.avatar_4,
-                R.drawable.avatar_5
+        String[] avatarResources = {
+                "avatar_1",
+                "avatar_2",
+                "avatar_3",
+                "avatar_4",
+                "avatar_5"
         };
+
 
         for (int i = 0; i < avatarResources.length; i++) {
             // Kreiraj FrameLayout kontejner
@@ -70,7 +70,8 @@ public class RegisterActivity extends AppCompatActivity {
                     FrameLayout.LayoutParams.MATCH_PARENT
             );
             avatarView.setLayoutParams(imageParams);
-            avatarView.setImageResource(avatarResources[i]);
+            int resId = getResources().getIdentifier(avatarResources[i], "drawable", getPackageName());
+            avatarView.setImageResource(resId);
             avatarView.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
             // ImageView za border (overlay)
@@ -91,7 +92,7 @@ public class RegisterActivity extends AppCompatActivity {
             avatarFrame.addView(borderView);
 
             // Klik listener
-            final int avatarRes = avatarResources[i];
+            final String avatarRes = avatarResources[i];
             avatarFrame.setOnClickListener(v -> {
                 selectedAvatar = avatarRes;
                 updateAvatarSelection();
@@ -104,18 +105,17 @@ public class RegisterActivity extends AppCompatActivity {
     private void updateAvatarSelection() {
         for (int i = 0; i < avatarContainer.getChildCount(); i++) {
             FrameLayout avatarFrame = (FrameLayout) avatarContainer.getChildAt(i);
-            int avatarRes = (int) avatarFrame.getTag();
+            String avatarRes = (String) avatarFrame.getTag();
 
             // Dobij border ImageView (drugi child)
             ImageView borderView = (ImageView) avatarFrame.getChildAt(1);
 
-            if (avatarRes == selectedAvatar) {
-                // Prikaži border
+            if (avatarRes.equals(selectedAvatar)) {
                 borderView.setImageResource(R.drawable.avatar_selected_border);
             } else {
-                // Ukloni border
                 borderView.setImageDrawable(null);
             }
+
         }
     }
 

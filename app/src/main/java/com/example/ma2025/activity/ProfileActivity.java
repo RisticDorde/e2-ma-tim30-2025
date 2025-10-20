@@ -64,7 +64,7 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void initViews() {
-        avatarImage = findViewById(R.id.avatar_image);
+       avatarImage = findViewById(R.id.avatar_image);
         usernameText = findViewById(R.id.username_text);
         levelText = findViewById(R.id.level_text);
         titleText = findViewById(R.id.title_text);
@@ -93,7 +93,7 @@ public class ProfileActivity extends AppCompatActivity {
             finish();
             return;
         }
-
+        Log.d("PROFILE", "Avatar: '" + currentUser.getAvatar() + "'");
         displayUserData();
     }
 
@@ -109,7 +109,22 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void displayUserData() {
-        avatarImage.setImageResource(currentUser.getAvatar());
+        String avatarName = currentUser.getAvatar();
+        Log.d("PROFILE", "Avatar iz baze: '" + avatarName + "'");
+
+
+        if (avatarName != null && !avatarName.isEmpty()) {
+            int imageResId = getResources().getIdentifier(avatarName, "drawable", getPackageName());
+            if (imageResId != 0) {
+                avatarImage.setImageResource(imageResId);
+            } else {
+                avatarImage.setImageResource(R.drawable.avatar_1); // fallback slika
+            }
+        } else {
+            avatarImage.setImageResource(R.drawable.avatar_1); // ako nema slike
+        }
+
+
         usernameText.setText(currentUser.getUsername());
         levelText.setText("Nivo " + currentUser.getLevelNumber());
         titleText.setText(currentUser.getTitleDisplayName());

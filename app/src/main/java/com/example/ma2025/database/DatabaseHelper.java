@@ -46,7 +46,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COL_EMAIL + " TEXT, " +
                 COL_USERNAME + " TEXT UNIQUE, " +
                 COL_PASSWORD + " TEXT, " +
-                COL_AVATAR + " INTEGER, " +
+                COL_AVATAR + " TEXT, " +
                 COL_IS_ACTIVE + " INTEGER DEFAULT 0, " +
                 COL_CREATED_AT + " DATETIME DEFAULT CURRENT_TIMESTAMP, " +
                 COL_LEVEL + " INTEGER DEFAULT 1, " +

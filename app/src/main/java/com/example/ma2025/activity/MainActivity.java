@@ -25,7 +25,7 @@ import com.google.firebase.FirebaseApp;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button btnProfile, btnLogout, btnShop, btnEquipment, bossButton;
+    private Button btnProfile, btnLogout, btnShop, btnEquipment, btnFriends, bossButton;
     private Button btnCategories, btnAddTask, btnTaskList, btnTaskCalendar;
     private UserRepository userRepository;
 
@@ -66,6 +66,12 @@ public class MainActivity extends AppCompatActivity {
             btnEquipment = findViewById(R.id.btnEquipment);
             btnEquipment.setOnClickListener(v -> {
                 Intent intent = new Intent(this, EquipmentActivity.class);
+                startActivity(intent);
+            });
+
+            btnFriends = findViewById(R.id.btnFriends);
+            btnFriends.setOnClickListener(v -> {
+                Intent intent = new Intent(this, FriendsListActivity.class);
                 startActivity(intent);
             });
 

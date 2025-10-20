@@ -1,4 +1,3 @@
-// repository/UserRepository.java
 package com.example.ma2025.repository;
 
 import android.content.ContentValues;
@@ -45,7 +44,7 @@ public class UserRepository {
         values.put(DatabaseHelper.COL_PASSWORD, user.getPassword());
         values.put(DatabaseHelper.COL_AVATAR, user.getAvatar());
         values.put(DatabaseHelper.COL_IS_ACTIVE, user.isActive() ? 1 : 0);
-        values.put(DatabaseHelper.COL_LEVEL, user.getLevelNumber());
+        values.put(DatabaseHelper.COL_LEVEL, user.getLevel().name());
         values.put(DatabaseHelper.COL_TITLE, user.getTitle().name());
         values.put(DatabaseHelper.COL_POWER_POINTS, user.getPowerPoints());
         values.put(DatabaseHelper.COL_EXPERIENCE_POINTS, user.getExperiencePoints());
@@ -77,18 +76,20 @@ public class UserRepository {
         userMap.put("password", user.getPassword());
         userMap.put("avatar", user.getAvatar());
         userMap.put("isActive", user.isActive());
-        userMap.put("level", user.getLevelNumber());
+        userMap.put("level", user.getLevel().name());
         userMap.put("title", user.getTitle().name());
         userMap.put("powerPoints", user.getPowerPoints());
         userMap.put("experiencePoints", user.getExperiencePoints());
         userMap.put("coins", user.getCoins());
-        userMap.put("badges", gson.toJson(user.getBadges()));
-        userMap.put("equipment", gson.toJson(user.getEquipment()));
-        userMap.put("currentEquipment", gson.toJson(user.getCurrentEquipment()));
+
+        // Promenjeno: direktne liste, ne JSON string
+        userMap.put("badges", user.getBadges());
+        userMap.put("equipment", user.getEquipment());
+        userMap.put("currentEquipment", user.getCurrentEquipment());
         userMap.put("qrCode", user.getQrCode());
-        userMap.put("potions", gson.toJson(user.getPotions()));
-        userMap.put("weapons", gson.toJson(user.getWeapons()));
-        userMap.put("clothings", gson.toJson(user.getClothings()));
+        userMap.put("potions", user.getPotions());
+        userMap.put("weapons", user.getWeapons());
+        userMap.put("clothings", user.getClothings());
         userMap.put("createdAt", user.getCreatedAt());
         userMap.put("current_boss_index", gson.toJson(user.getCurrentBossIndex()));
         userMap.put("boss_remaining_hp", gson.toJson(user.getBossRemainingHp()));
@@ -122,7 +123,6 @@ public class UserRepository {
         db.close();
         return user;
     }
-
 
     public User getUserById(int id) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -160,9 +160,6 @@ public class UserRepository {
         return user;
     }
 
-    /**
-     * Ažurira korisnički profil
-     */
     public boolean updateUser(User user) {
         Log.d("UPDATE", "*****************************Updating user with ID=" + user.getId());
 
@@ -170,7 +167,7 @@ public class UserRepository {
 
         ContentValues values = new ContentValues();
         values.put(DatabaseHelper.COL_IS_ACTIVE, user.isActive() ? 1 : 0);
-        values.put(DatabaseHelper.COL_LEVEL, user.getLevelNumber());
+        values.put(DatabaseHelper.COL_LEVEL, user.getLevel().name());
         values.put(DatabaseHelper.COL_TITLE, user.getTitle().name());
         values.put(DatabaseHelper.COL_POWER_POINTS, user.getPowerPoints());
         values.put(DatabaseHelper.COL_EXPERIENCE_POINTS, user.getExperiencePoints());
@@ -206,14 +203,16 @@ public class UserRepository {
     private void updateUserInFirestore(User user) {
         Map<String, Object> updates = new HashMap<>();
         updates.put("isActive", user.isActive());
-        updates.put("level", user.getLevelNumber());
+        updates.put("level", user.getLevel().name());
         updates.put("title", user.getTitle().name());
         updates.put("powerPoints", user.getPowerPoints());
         updates.put("experiencePoints", user.getExperiencePoints());
         updates.put("coins", user.getCoins());
-        updates.put("badges", gson.toJson(user.getBadges()));
-        updates.put("equipment", gson.toJson(user.getEquipment()));
-        updates.put("currentEquipment", gson.toJson(user.getCurrentEquipment()));
+
+        // Promenjeno: direktne liste
+        updates.put("badges", user.getBadges());
+        updates.put("equipment", user.getEquipment());
+        updates.put("currentEquipment", user.getCurrentEquipment());
         updates.put("qrCode", user.getQrCode());
         updates.put("potions", gson.toJson(user.getPotions()));
         updates.put("weapons", gson.toJson(user.getWeapons()));
@@ -225,14 +224,9 @@ public class UserRepository {
         firestore.collection("users")
                 .document(user.getEmail())
                 .update(updates)
-                .addOnSuccessListener(aVoid -> {
-                    Log.d("Firestore", "******************Korisnik uspešno ažuriran u Firestore.");
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("Firestore", "*******************Greška pri ažuriranju korisnika: " + e.getMessage());
-                });
+                .addOnSuccessListener(aVoid -> Log.d("Firestore", "Korisnik uspešno ažuriran u Firestore."))
+                .addOnFailureListener(e -> Log.e("Firestore", "Greška pri ažuriranju korisnika: " + e.getMessage()));
     }
-
 
     /**
      * Menja lozinku korisnika
@@ -450,7 +444,7 @@ public class UserRepository {
         user.setEmail(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EMAIL)));
         user.setUsername(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_USERNAME)));
         user.setPassword(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_PASSWORD)));
-        user.setAvatar(cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_AVATAR)));
+        user.setAvatar(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_AVATAR)));
         user.setActive(cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_IS_ACTIVE)) == 1);
         user.setCreatedAt(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_CREATED_AT)));
 

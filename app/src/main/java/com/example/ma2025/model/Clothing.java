@@ -8,6 +8,7 @@ public class Clothing {
     private int duration;       // koliko borbi traje
     private boolean isActivated;
 
+    public Clothing() {}
     public Clothing(String name, String type, double bonus, int price) {
         this.name = name;
         this.type = type;
