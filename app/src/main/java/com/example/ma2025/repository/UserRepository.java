@@ -56,6 +56,9 @@ public class UserRepository {
         values.put(DatabaseHelper.COL_POTIONS, gson.toJson(user.getPotions()));
         values.put(DatabaseHelper.COL_WEAPONS, gson.toJson(user.getWeapons()));
         values.put(DatabaseHelper.COL_CLOTHINGS, gson.toJson(user.getClothings()));
+        values.put(DatabaseHelper.COL_CLOTHINGS, gson.toJson(user.getCurrentBossIndex()));
+        values.put(DatabaseHelper.COL_CLOTHINGS, gson.toJson(user.getBossRemainingHp()));
+        values.put(DatabaseHelper.COL_CLOTHINGS, gson.toJson(user.getLastLevelUpAt()));
 
         long result = db.insert(DatabaseHelper.TABLE_USERS, null, values);
         db.close();
@@ -88,6 +91,9 @@ public class UserRepository {
         userMap.put("weapons", user.getWeapons());
         userMap.put("clothings", user.getClothings());
         userMap.put("createdAt", user.getCreatedAt());
+        userMap.put("current_boss_index", gson.toJson(user.getCurrentBossIndex()));
+        userMap.put("boss_remaining_hp", gson.toJson(user.getBossRemainingHp()));
+        userMap.put("last_level_up_at", gson.toJson(user.getCreatedAt()));
 
         firestore.collection("users")
                 .document(user.getEmail())
@@ -173,7 +179,9 @@ public class UserRepository {
         values.put(DatabaseHelper.COL_POTIONS, gson.toJson(user.getPotions()));
         values.put(DatabaseHelper.COL_WEAPONS, gson.toJson(user.getWeapons()));
         values.put(DatabaseHelper.COL_CLOTHINGS, gson.toJson(user.getClothings()));
-
+        values.put(DatabaseHelper.COL_CURRENT_BOSS_INDEX, gson.toJson(user.getCurrentBossIndex()));
+        values.put(DatabaseHelper.COL_BOSS_REMAINING_HP, gson.toJson(user.getBossRemainingHp()));
+        values.put(DatabaseHelper.COL_LAST_LEVEL_UP, gson.toJson(user.getLastLevelUpAt()));
         int result = db.update(
                 DatabaseHelper.TABLE_USERS,
                 values,
@@ -206,9 +214,12 @@ public class UserRepository {
         updates.put("equipment", user.getEquipment());
         updates.put("currentEquipment", user.getCurrentEquipment());
         updates.put("qrCode", user.getQrCode());
-        updates.put("potions", user.getPotions());
-        updates.put("weapons", user.getWeapons());
-        updates.put("clothings", user.getClothings());
+        updates.put("potions", gson.toJson(user.getPotions()));
+        updates.put("weapons", gson.toJson(user.getWeapons()));
+        updates.put("clothings", gson.toJson(user.getClothings()));
+        updates.put("current_boss_index", gson.toJson(user.getCurrentBossIndex()));
+        updates.put("boss_remaining_hp", gson.toJson(user.getBossRemainingHp()));
+        updates.put("last_level_up_at", gson.toJson(user.getLastLevelUpAt()));
 
         firestore.collection("users")
                 .document(user.getEmail())
