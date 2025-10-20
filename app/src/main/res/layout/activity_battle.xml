@@ -1,10 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/battleLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".boss.BattleActivity">
+    android:background="#101010"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:padding="16dp">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <ImageView
+        android:id="@+id/bossImage"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:src="@drawable/boss_idle"
+        android:contentDescription="Boss"
+        android:layout_marginBottom="16dp" />
+
+    <ProgressBar
+        android:id="@+id/bossHpBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="300dp"
+        android:layout_height="20dp"
+        android:progressTint="#FF0000"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/bossHpText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Boss HP: 200/200"
+        android:textColor="#FFF"
+        android:layout_marginBottom="16dp" />
+
+    <ImageView
+        android:id="@+id/equipmentImage"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:src="@drawable/armor_icon"
+        android:layout_marginBottom="8dp" />
+
+    <ProgressBar
+        android:id="@+id/userPpBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="300dp"
+        android:layout_height="20dp"
+        android:progressTint="#2196F3"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/userPpText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tvoja snaga (PP): 10"
+        android:textColor="#FFF"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:id="@+id/attemptsText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Preostali napadi: 5/5"
+        android:textColor="#FFF"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/chanceText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Šansa: 67%"
+        android:textColor="#FFF"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/attackButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Napadni"
+        android:backgroundTint="#E53935"
+        android:textColor="#FFF" />
+
+    <ImageView
+        android:id="@+id/chestImage"
+        android:layout_width="128dp"
+        android:layout_height="128dp"
+        android:src="@drawable/chest_closed"
+        android:contentDescription="Chest"
+        android:visibility="gone"
+        android:layout_marginTop="32dp" />
+
+    <TextView
+        android:id="@+id/chestHint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Protresi telefon da otvoriš kovčeg!"
+        android:textColor="#FFF"
+        android:visibility="gone"
+        android:layout_marginTop="8dp" />
+
+</LinearLayout>
