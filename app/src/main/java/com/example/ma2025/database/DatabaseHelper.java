@@ -60,9 +60,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COL_QR_CODE + " TEXT DEFAULT ''," +
                 COL_POTIONS + " TEXT DEFAULT '', " +
                 COL_WEAPONS + " TEXT DEFAULT '', " +
-                COL_CLOTHINGS + " TEXT DEFAULT ''" +
-                COL_CURRENT_BOSS_INDEX + " TEXT DEFAULT ''" +
-                COL_BOSS_REMAINING_HP + " TEXT DEFAULT ''" +
+                COL_CLOTHINGS + " TEXT DEFAULT '', " +
+                COL_CURRENT_BOSS_INDEX + " TEXT DEFAULT '', " +
+                COL_BOSS_REMAINING_HP + " TEXT DEFAULT ''," +
                 COL_LAST_LEVEL_UP + " TEXT DEFAULT ''" +
                 ")";
         db.execSQL(CREATE_USERS);
