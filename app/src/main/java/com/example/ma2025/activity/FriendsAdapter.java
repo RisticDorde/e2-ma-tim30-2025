@@ -51,7 +51,7 @@ public class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.FriendVi
 
         holder.username.setText(friend.getUsername());
 
-        holder.itemView.setOnClickListener(v -> listener.onProfileClick(friend.getId()));
+        holder.itemView.setOnClickListener(v -> listener.onProfileClick(friend.getEmail()));
         holder.btnAdd.setOnClickListener(v -> listener.onAddFriendClick(friend.getId()));
     }
 

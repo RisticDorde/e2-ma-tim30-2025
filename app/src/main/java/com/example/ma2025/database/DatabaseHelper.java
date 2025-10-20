@@ -83,6 +83,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             String weapons = cursor.getString(cursor.getColumnIndexOrThrow(COL_WEAPONS));
             String clothings = cursor.getString(cursor.getColumnIndexOrThrow(COL_CLOTHINGS));
             String xp = cursor.getString((cursor.getColumnIndexOrThrow(COL_EXPERIENCE_POINTS)));
+            String level = cursor.getString(cursor.getColumnIndexOrThrow(COL_LEVEL));
 
             android.util.Log.d("DB_USER",
                     "ID: " + id +
@@ -94,7 +95,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                             " | Potions: " + potions +
                             " | Weapons: " + weapons +
                             " | Clothings: " + clothings +
-                            " | XP: " + xp
+                            " | XP: " + xp +
+                            " | Level: " + level
             );
         }
         cursor.close();

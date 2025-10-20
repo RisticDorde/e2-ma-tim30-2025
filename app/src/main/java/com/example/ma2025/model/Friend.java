@@ -5,14 +5,15 @@ public class Friend {
     private String username; // Username prijatelja
     private String avatar;      // Resource ID avatara
     private boolean isFriend; // Da li je već prijatelj
-
+    private String email;
     public Friend() {}
 
-    public Friend(String id, String username, String avatar) {
+    public Friend(String id, String username, String avatar, String email) {
         this.id = id;
         this.username = username;
         this.avatar = avatar;
         this.isFriend = false; // default
+        this.email = email;
     }
 
     public String getId() {
@@ -46,5 +47,14 @@ public class Friend {
     public void setFriend(boolean friend) {
         isFriend = friend;
     }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
 }
 

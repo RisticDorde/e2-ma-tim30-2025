@@ -161,7 +161,7 @@ public class UserRepository {
 
         ContentValues values = new ContentValues();
         values.put(DatabaseHelper.COL_IS_ACTIVE, user.isActive() ? 1 : 0);
-        values.put(DatabaseHelper.COL_LEVEL, user.getLevel().name());
+        values.put(DatabaseHelper.COL_LEVEL, user.getLevelNumber());
         values.put(DatabaseHelper.COL_TITLE, user.getTitle().name());
         values.put(DatabaseHelper.COL_POWER_POINTS, user.getPowerPoints());
         values.put(DatabaseHelper.COL_EXPERIENCE_POINTS, user.getExperiencePoints());

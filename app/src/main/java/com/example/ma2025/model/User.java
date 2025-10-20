@@ -52,9 +52,7 @@ public class User {
 
     public String getUsername() { return username; }
     public void setUsername(String username) {
-        if (this.id == 0) {
-            this.username = username;
-        }
+        this.username = username;
     }
 
     public String getAvatar() { return avatar; }
