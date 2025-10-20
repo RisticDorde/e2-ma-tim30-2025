@@ -130,51 +130,134 @@ public class User {
         int required = getNextLevelRequiredXp();
         return required > 0 ? (float) progress / required * 100 : 0;
     }
-    public void addExperience(int xpToAdd, boolean defeatedBoss, int coinsRewardIfBoss, UserRepository userRepo) {
-        this.experiencePoints += xpToAdd;
+//    public void addExperience(int xpToAdd, boolean defeatedBoss, int coinsRewardIfBoss, UserRepository userRepo) {
+//        this.experiencePoints += xpToAdd;
+//
+//        Log.d("TaskDetails", "XP = " + this.experiencePoints);
+//        boolean leveledUp = false;
+//        while (true) {
+//            int currentLevelNumber = this.level.getLevelNumber();
+//            int maxXpForCurrent = LevelCalculator.getMaxXpForLevel(currentLevelNumber);
+//
+//            if (this.experiencePoints >= maxXpForCurrent) {
+//                leveledUp = true;
+//                int nextLevelNumber = currentLevelNumber + 1;
+//                this.setLevel(Level.fromLevelNumber(nextLevelNumber));
+//
+//                if (currentLevelNumber == 1) {
+//                    // prvi prelazak → 40 PP
+//                    this.powerPoints += 40;
+//                } else {
+//                    // svako sledeće → formula
+//                    int previousReward = this.powerPoints; // trenutna vrednost PP
+//                    int reward = (int) (previousReward + (0.75 * previousReward));
+//                    this.powerPoints = reward;
+//                }
+//
+//                if (defeatedBoss) {
+//                    this.coins += coinsRewardIfBoss;
+//                }
+//
+//                // Logika boss index
+//                if (this.currentBossIndex == 0 && nextLevelNumber >= 2) {
+//                    // otključava se prvi boss
+//                    this.currentBossIndex = 1;
+//                    this.bossRemainingHp = 200; // prvi boss HP
+//                    this.setCurrentBossIndex(1);
+//                    this.setBossRemainingHp(200);
+//                } else if (nextLevelNumber > 2 && this.bossRemainingHp == 0) {
+//                    // prelazak na naredni boss samo ako prethodni boss poražen
+//                    this.currentBossIndex = nextLevelNumber - 1;
+//                    this.bossRemainingHp = computeBossHpForIndex(this.currentBossIndex);
+//                    this.setCurrentBossIndex(nextLevelNumber - 1);
+//                    this.setBossRemainingHp(computeBossHpForIndex(this.currentBossIndex));
+//                }
+//
+//            } else {
+//                break;
+//            }
+//        }
+//        Log.d("ADD_XP_FINAL", "Saving -> bossIndex=" + this.currentBossIndex +
+//                ", bossHP=" + this.bossRemainingHp + ", level=" + this.level.getLevelNumber());
+//        userRepo.updateUser(this);
+//    }
+public void addExperience(int xpToAdd, boolean defeatedBoss, int coinsRewardIfBoss, UserRepository userRepo) {
+    this.experiencePoints += xpToAdd;
+    Log.d("ADD_XP_START", "XP before: " + this.experiencePoints +
+            ", Level=" + this.level.getLevelNumber() +
+            ", BossIndex=" + this.currentBossIndex +
+            ", BossHP=" + this.bossRemainingHp);
 
-        Log.d("TaskDetails", "XP = " + this.experiencePoints);
-        boolean leveledUp = false;
-        while (true) {
-            int currentLevelNumber = this.level.getLevelNumber();
-            int maxXpForCurrent = LevelCalculator.getMaxXpForLevel(currentLevelNumber);
+    boolean leveledUp = false;
 
-            if (this.experiencePoints >= maxXpForCurrent) {
-                leveledUp = true;
-                int nextLevelNumber = currentLevelNumber + 1;
-                this.setLevel(Level.fromLevelNumber(nextLevelNumber));
+    while (true) {
+        int currentLevelNumber = this.level.getLevelNumber();
+        int maxXpForCurrent = LevelCalculator.getMaxXpForLevel(currentLevelNumber);
 
-                if (currentLevelNumber == 1) {
-                    // prvi prelazak → 40 PP
-                    this.powerPoints += 40;
-                } else {
-                    // svako sledeće → formula
-                    int previousReward = this.powerPoints; // trenutna vrednost PP
-                    int reward = (int) (previousReward + (0.75 * previousReward));
-                    this.powerPoints = reward;
-                }
+        if (this.experiencePoints >= maxXpForCurrent) {
+            leveledUp = true;
+            int nextLevelNumber = currentLevelNumber + 1;
+            this.setLevel(Level.fromLevelNumber(nextLevelNumber));
 
-                if (defeatedBoss) {
-                    this.coins += coinsRewardIfBoss;
-                }
+            Log.d("LEVEL_UP", "Leveled up from " + currentLevelNumber + " → " + nextLevelNumber);
 
-                // Logika boss index
-                if (this.currentBossIndex == 0 && nextLevelNumber >= 2) {
-                    // otključava se prvi boss
-                    this.currentBossIndex = 1;
-                    this.bossRemainingHp = 200; // prvi boss HP
-                } else if (nextLevelNumber > 2 && this.bossRemainingHp == 0) {
-                    // prelazak na naredni boss samo ako prethodni boss poražen
-                    this.currentBossIndex = nextLevelNumber - 1;
-                    this.bossRemainingHp = computeBossHpForIndex(this.currentBossIndex);
-                }
-
+            // Power Points nagrada
+            if (currentLevelNumber == 1) {
+                this.powerPoints += 40;
+                Log.d("LEVEL_UP", "Initial PP bonus +40 (now " + this.powerPoints + ")");
             } else {
-                break;
+                int previousReward = this.powerPoints;
+                int reward = (int) (previousReward + (0.75 * previousReward));
+                this.powerPoints = reward;
+                Log.d("LEVEL_UP", "PP scaled from " + previousReward + " → " + reward);
             }
+
+            // Boss nagrada ako je poražen
+            if (defeatedBoss) {
+                this.coins += coinsRewardIfBoss;
+                Log.d("LEVEL_UP", "Boss defeated → +coins=" + coinsRewardIfBoss + ", total=" + this.coins);
+            }
+
+        } else {
+            break;
         }
-        userRepo.updateUser(this);
     }
+
+    // === Boss logika POSLE level up petlje ===
+    int currentLevelNumber = this.level.getLevelNumber();
+
+    if (this.currentBossIndex == 0 && currentLevelNumber >= 2) {
+        // otključava se prvi boss
+        this.currentBossIndex = 1;
+        this.bossRemainingHp = 200;
+        this.setCurrentBossIndex(1);
+        this.setBossRemainingHp(200);
+        Log.d("BOSS_LOGIC", "Unlocked first boss → index=1, HP=200");
+    }
+    else if (currentLevelNumber > 2 && this.bossRemainingHp == 0 && defeatedBoss) {
+        // prelazak na narednog bossa (SAMO ako je boss poražen)
+        int newBossIndex = currentLevelNumber - 1;
+        int newHp = computeBossHpForIndex(newBossIndex);
+        this.currentBossIndex = newBossIndex;
+        this.bossRemainingHp = newHp;
+        this.setCurrentBossIndex(newBossIndex);
+        this.setBossRemainingHp(newHp);
+        Log.d("BOSS_LOGIC", "Advanced to boss index=" + newBossIndex + ", HP=" + newHp);
+    }
+
+    // Završni log pre čuvanja
+    Log.d("ADD_XP_FINAL", "Saving → XP=" + this.experiencePoints +
+            ", Level=" + this.level.getLevelNumber() +
+            ", BossIndex=" + this.currentBossIndex +
+            ", BossHP=" + this.bossRemainingHp +
+            ", Coins=" + this.coins +
+            ", PP=" + this.powerPoints);
+
+    // Obavezno ažuriranje u repozitorijumu
+    userRepo.updateUser(this);
+    Log.d("UPDATE", "***************************** Updating user with ID=" + this.id);
+}
+
 
     // helper za HP bossa po indexu
     private int computeBossHpForIndex(int index) {

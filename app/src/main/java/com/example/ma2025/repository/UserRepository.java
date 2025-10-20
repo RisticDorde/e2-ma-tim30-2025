@@ -56,9 +56,9 @@ public class UserRepository {
         values.put(DatabaseHelper.COL_POTIONS, gson.toJson(user.getPotions()));
         values.put(DatabaseHelper.COL_WEAPONS, gson.toJson(user.getWeapons()));
         values.put(DatabaseHelper.COL_CLOTHINGS, gson.toJson(user.getClothings()));
-        values.put(DatabaseHelper.COL_CLOTHINGS, gson.toJson(user.getCurrentBossIndex()));
-        values.put(DatabaseHelper.COL_CLOTHINGS, gson.toJson(user.getBossRemainingHp()));
-        values.put(DatabaseHelper.COL_CLOTHINGS, gson.toJson(user.getLastLevelUpAt()));
+        values.put(DatabaseHelper.COL_CURRENT_BOSS_INDEX, user.getCurrentBossIndex());
+        values.put(DatabaseHelper.COL_BOSS_REMAINING_HP, user.getBossRemainingHp());
+        values.put(DatabaseHelper.COL_LAST_LEVEL_UP, user.getLastLevelUpAt());
 
         long result = db.insert(DatabaseHelper.TABLE_USERS, null, values);
         db.close();
@@ -91,9 +91,9 @@ public class UserRepository {
         userMap.put("weapons", user.getWeapons());
         userMap.put("clothings", user.getClothings());
         userMap.put("createdAt", user.getCreatedAt());
-        userMap.put("current_boss_index", gson.toJson(user.getCurrentBossIndex()));
-        userMap.put("boss_remaining_hp", gson.toJson(user.getBossRemainingHp()));
-        userMap.put("last_level_up_at", gson.toJson(user.getCreatedAt()));
+        userMap.put("current_boss_index", user.getCurrentBossIndex());
+        userMap.put("boss_remaining_hp", user.getBossRemainingHp());
+        userMap.put("last_level_up_at", user.getCreatedAt());
 
         firestore.collection("users")
                 .document(user.getEmail())
@@ -179,9 +179,12 @@ public class UserRepository {
         values.put(DatabaseHelper.COL_POTIONS, gson.toJson(user.getPotions()));
         values.put(DatabaseHelper.COL_WEAPONS, gson.toJson(user.getWeapons()));
         values.put(DatabaseHelper.COL_CLOTHINGS, gson.toJson(user.getClothings()));
-        values.put(DatabaseHelper.COL_CURRENT_BOSS_INDEX, gson.toJson(user.getCurrentBossIndex()));
-        values.put(DatabaseHelper.COL_BOSS_REMAINING_HP, gson.toJson(user.getBossRemainingHp()));
-        values.put(DatabaseHelper.COL_LAST_LEVEL_UP, gson.toJson(user.getLastLevelUpAt()));
+        values.put(DatabaseHelper.COL_CURRENT_BOSS_INDEX, user.getCurrentBossIndex());
+        values.put(DatabaseHelper.COL_BOSS_REMAINING_HP, user.getBossRemainingHp());
+        values.put(DatabaseHelper.COL_LAST_LEVEL_UP, user.getLastLevelUpAt());
+        Log.d("UPDATE", "BossIndex = " + user.getCurrentBossIndex() +
+                ", BossHP = " + user.getBossRemainingHp() +
+                ", Level = " + user.getLevelNumber());
         int result = db.update(
                 DatabaseHelper.TABLE_USERS,
                 values,
@@ -465,6 +468,10 @@ public class UserRepository {
         user.setCoins(cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_COINS)));
         user.setQrCode(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_QR_CODE)));
 
+        user.setCurrentBossIndex(cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_CURRENT_BOSS_INDEX)));
+        user.setBossRemainingHp(cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_BOSS_REMAINING_HP)));
+        user.setLastLevelUpAt(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_LAST_LEVEL_UP)));
+
         // JSON array konverzije
         Type listType = new TypeToken<ArrayList<String>>(){}.getType();
 
@@ -500,7 +507,6 @@ public class UserRepository {
             Type clothingListType = new TypeToken<ArrayList<Clothing>>(){}.getType();
             user.setClothings(gson.fromJson(clothingsJson, clothingListType));
         }
-
 
         return user;
     }
