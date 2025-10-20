@@ -17,7 +17,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ma2025.R;
+import com.example.ma2025.auth.AuthManager;
 import com.example.ma2025.model.Category;
+import com.example.ma2025.repository.UserRepository;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -30,7 +32,8 @@ public class CategoryActivity extends AppCompatActivity {
     private CategoryAdapter adapter;
     private List<Category> categories = new ArrayList<>();
     private CategoryRepository repository;
-
+    private UserRepository userRepository;
+    private String currentUserId;
     private ListenerRegistration listenerRegistration;
 
     private List<String> usedColors = new ArrayList<>();
@@ -39,7 +42,7 @@ public class CategoryActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_category);
-
+        currentUserId = AuthManager.getCurrentUser(this).getUid();
         repository = new CategoryRepository();
 
         recyclerView = findViewById(R.id.recyclerViewCategories);
@@ -107,7 +110,7 @@ public class CategoryActivity extends AppCompatActivity {
                             return;
                         }
                         if (!name.isEmpty() && color.matches("^#([A-Fa-f0-9]{6})$")) {
-                            Category newCat = new Category(null, name, color);
+                            Category newCat = new Category(null, name, color, currentUserId);
                             repository.addCategory(newCat);
                             refreshUsedColors();
                         }
@@ -118,7 +121,7 @@ public class CategoryActivity extends AppCompatActivity {
 
 
         // slušaj promene u Firestore
-        listenerRegistration = repository.getAllCategories()
+        listenerRegistration = repository.getCategoriesByUserId(currentUserId)
                 .addSnapshotListener((snapshots, e) -> {
                     if (e != null || snapshots == null) return;
 

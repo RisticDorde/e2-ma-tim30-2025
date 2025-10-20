@@ -3,6 +3,7 @@ package com.example.ma2025.category;
 import com.example.ma2025.model.Category;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 
 public class CategoryRepository {
     private final CollectionReference categoryCollection;
@@ -30,6 +31,10 @@ public class CategoryRepository {
 
     public  CollectionReference getAllCategories(){
         return categoryCollection;
+    }
+
+    public Query getCategoriesByUserId(String userId) {
+        return categoryCollection.whereEqualTo("userId", userId);
     }
 
 }
