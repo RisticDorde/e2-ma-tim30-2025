@@ -295,7 +295,6 @@
 
 
             </LinearLayout>
-
         </androidx.cardview.widget.CardView>
 
         <!-- QR Code Card (uvijek vidljivo) -->
@@ -334,6 +333,13 @@
             </LinearLayout>
 
         </androidx.cardview.widget.CardView>
+
+        <Button
+            android:id="@+id/btn_statistics"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📊 Statistika"
+            android:layout_margin="8dp"/>
 
         <!-- Change Password Button (privatno) -->
         <Button
