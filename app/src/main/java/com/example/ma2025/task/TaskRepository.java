@@ -94,6 +94,10 @@ public class TaskRepository {
         return taskCollection;
     }
 
+    public Query getAllTasksByUserId(String userId){
+        return taskCollection.whereEqualTo("userId", userId);
+    }
+
     // Ažuriranje postojećeg zadatka
     //public void updateTask(Task task) {
         //if (task.getId() != null) {
@@ -168,15 +172,20 @@ public class TaskRepository {
     }
 
 
-    public Query getUserAccomplishedTasksSince(int userId, long fromTimestamp) {
+    public Query getUserAccomplishedTasksSince(String userId, long fromTimestamp) {
         return taskCollection
                 .whereEqualTo("taskStatus", TaskStatus.ACCOMPLISHED.name())
+                .whereEqualTo("taskFrequency", TaskFrequency.ONETIME.name())
                 .whereEqualTo("userId", userId)
-                .whereGreaterThan("endDate", new com.google.firebase.Timestamp(new Date(fromTimestamp)));
+                .whereGreaterThan("executionDate", new com.google.firebase.Timestamp(new Date(fromTimestamp)));
     }
 
     public DocumentReference getTaskById(String taskId) {
         return taskCollection.document(taskId);
+    }
+
+    public Query getTasksByParentId(String parentTaskId) {
+        return taskCollection.whereEqualTo("parentTaskId", parentTaskId);
     }
 }
 

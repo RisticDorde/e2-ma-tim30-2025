@@ -1,5 +1,6 @@
 package com.example.ma2025.task;
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -13,6 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.ma2025.R;
+import com.example.ma2025.auth.AuthManager;
 import com.example.ma2025.model.Task;
 import com.example.ma2025.model.User;
 import com.example.ma2025.repository.UserRepository;
@@ -21,6 +23,12 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 public class TaskDetailsActivity extends AppCompatActivity {
 
@@ -32,6 +40,8 @@ public class TaskDetailsActivity extends AppCompatActivity {
     private String taskId;
     private Task currentTask;
     private boolean isEditing = false;
+
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -74,6 +84,7 @@ public class TaskDetailsActivity extends AppCompatActivity {
         ));
         ((ArrayAdapter<?>) spinnerStatus.getAdapter()).setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
+        setupDatePickers();
 
         taskRepository = new TaskRepository();
         taskId = getIntent().getStringExtra("taskId");
@@ -105,17 +116,70 @@ public class TaskDetailsActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Toast.makeText(this, "Greška pri učitavanju zadatka", Toast.LENGTH_SHORT).show());
     }
 
+    private void setupDatePickers() {
+        etExecutionDate.setOnClickListener(v -> showDatePicker((date) -> {
+            currentTask.setExecutionDate(date);
+            etExecutionDate.setText(dateFormat.format(date));
+        }));
+
+        etStartDate.setOnClickListener(v -> showDatePicker((date) -> {
+            currentTask.setStartDate(date);
+            etStartDate.setText(dateFormat.format(date));
+        }));
+
+        etEndDate.setOnClickListener(v -> showDatePicker((date) -> {
+            currentTask.setEndDate(date);
+            etEndDate.setText(dateFormat.format(date));
+        }));
+    }
+
+    private void showDatePicker(OnDateSelectedListener listener) {
+        Calendar calendar = Calendar.getInstance();
+
+        new DatePickerDialog(
+                this,
+                (view, year, month, dayOfMonth) -> {
+                    Calendar selected = Calendar.getInstance();
+                    selected.set(year, month, dayOfMonth);
+                    listener.onDateSelected(selected.getTime());
+                },
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+        ).show();
+    }
+
+    // Helper interface
+    interface OnDateSelectedListener {
+        void onDateSelected(Date date);
+    }
+
     private void populateFields() {
         etName.setText(currentTask.getName());
         etDescription.setText(currentTask.getDescription());
-        etExecutionDate.setText(currentTask.getExecutionDate() != null ? currentTask.getExecutionDate().toString() : "-");
-        etStartDate.setText(currentTask.getStartDate() != null ? currentTask.getStartDate().toString() : "-");
-        etEndDate.setText(currentTask.getEndDate() != null ? currentTask.getEndDate().toString() : "-");
+
+        //etExecutionDate.setText(currentTask.getExecutionDate() != null ? currentTask.getExecutionDate().toString() : "-");
+        //etStartDate.setText(currentTask.getStartDate() != null ? currentTask.getStartDate().toString() : "-");
+        //etEndDate.setText(currentTask.getEndDate() != null ? currentTask.getEndDate().toString() : "-");
+
+        etExecutionDate.setText(currentTask.getExecutionDate() != null
+                ? dateFormat.format(currentTask.getExecutionDate())
+                : "");
+        etStartDate.setText(currentTask.getStartDate() != null
+                ? dateFormat.format(currentTask.getStartDate())
+                : "");
+        etEndDate.setText(currentTask.getEndDate() != null
+                ? dateFormat.format(currentTask.getEndDate())
+                : "");
+
+
         inputTotalXp.setText(String.valueOf(currentTask.getTotalXP()));
 
         setSpinnerEnumSelection(spinnerImportance, currentTask.getImportance());
         setSpinnerEnumSelection(spinnerDifficulty, currentTask.getDifficulty());
         setSpinnerEnumSelection(spinnerStatus, currentTask.getTaskStatus());
+
+        applyBusinessRules();
     }
 
     private <T extends Enum<T>> void setSpinnerEnumSelection(Spinner spinner, T value) {
@@ -132,9 +196,16 @@ public class TaskDetailsActivity extends AppCompatActivity {
         isEditing = enable;
         etName.setEnabled(enable);
         etDescription.setEnabled(enable);
-        etExecutionDate.setEnabled(enable);
-        etStartDate.setEnabled(enable);
-        etEndDate.setEnabled(enable);
+        //etExecutionDate.setEnabled(enable);
+        //etStartDate.setEnabled(enable);
+        if (currentTask.getFrequency() == TaskFrequency.ONETIME){
+            etEndDate.setEnabled(false);
+            etStartDate.setEnabled(false);
+        }
+        if (currentTask.getFrequency() == TaskFrequency.REPETITIVE){
+            etExecutionDate.setEnabled(false);
+        }
+        //etEndDate.setEnabled(enable);
         btnSave.setVisibility(enable ? View.VISIBLE : View.GONE);
         btnEdit.setVisibility(enable ? View.GONE : View.VISIBLE);
     }
@@ -142,6 +213,38 @@ public class TaskDetailsActivity extends AppCompatActivity {
     private void saveChanges() {
         TaskStatus oldStatus = currentTask.getTaskStatus();
         TaskStatus newStatus = (TaskStatus) spinnerStatus.getSelectedItem();
+
+        if (newStatus == TaskStatus.ACCOMPLISHED && isTaskInFuture()) {
+            Toast.makeText(this, "Ne možete završiti zadatak koji je u budućnosti!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Ako je PAUSED i nije repetitive, zabrani
+        if (newStatus == TaskStatus.PAUSED && currentTask.getFrequency() != TaskFrequency.REPETITIVE) {
+            Toast.makeText(this, "Samo ponavljajući zadaci mogu biti pauzirani!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        //ako nije uneseno kroz date picker
+        try {
+            String execDateStr = etExecutionDate.getText().toString().trim();
+            if (!execDateStr.isEmpty() && !execDateStr.equals("-")) {
+                currentTask.setExecutionDate(dateFormat.parse(execDateStr));
+            }
+
+            String startDateStr = etStartDate.getText().toString().trim();
+            if (!startDateStr.isEmpty() && !startDateStr.equals("-")) {
+                currentTask.setStartDate(dateFormat.parse(startDateStr));
+            }
+
+            String endDateStr = etEndDate.getText().toString().trim();
+            if (!endDateStr.isEmpty() && !endDateStr.equals("-")) {
+                currentTask.setEndDate(dateFormat.parse(endDateStr));
+            }
+        } catch (ParseException e) {
+            Toast.makeText(this, "Neispravan format datuma! Koristite dd.MM.yyyy", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         currentTask.setName(etName.getText().toString());
         currentTask.setDescription(etDescription.getText().toString());currentTask.setImportance((TaskImportance) spinnerImportance.getSelectedItem());
@@ -153,6 +256,10 @@ public class TaskDetailsActivity extends AppCompatActivity {
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Zadatak ažuriran", Toast.LENGTH_SHORT).show();
                     enableEditing(false);
+
+                    if (newStatus == TaskStatus.PAUSED && currentTask.getFrequency() == TaskFrequency.REPETITIVE) {
+                        pauseFutureChildTasks();
+                    }
 
                     Log.d("TaskDetails", "oldStatus=" + oldStatus + " newStatus=" + newStatus);
 
@@ -260,8 +367,10 @@ private void checkAndAwardXp(Task task) {
         return;
     }
 
+    String loggedUserId = AuthManager.getCurrentUser(this).getUid();
+
     //  Firestore: proveri koliko je već accomplished zadataka u periodu
-    taskRepository.getAccomplishedTasksSince(fromTime)
+    taskRepository.getUserAccomplishedTasksSince(loggedUserId, fromTime)
             .get()
             .addOnSuccessListener(querySnapshot -> {
                 int count = querySnapshot.size();
@@ -338,5 +447,176 @@ private void checkAndAwardXp(Task task) {
                    // finish();
                 //})
                 //.addOnFailureListener(e -> Toast.makeText(this, "Greška pri brisanju", Toast.LENGTH_SHORT).show());
+    }
+
+    private void pauseFutureChildTasks() {
+        long now = System.currentTimeMillis();
+
+        taskRepository.getTasksByParentId(currentTask.getId())
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    for (var doc : querySnapshot) {
+                        Task childTask = doc.toObject(Task.class);
+                        childTask.setId(doc.getId());
+
+                        // Pausiraj samo ako je u budućnosti
+                        if (childTask.getExecutionDate() != null &&
+                                childTask.getExecutionDate().getTime() > now) {
+
+                            childTask.setTaskStatus(TaskStatus.PAUSED);
+                            taskRepository.updateTask(childTask);
+                        }
+                    }
+                    Toast.makeText(this, "Budući repetitivni zadaci su pauzirani", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void applyBusinessRules() {
+        TaskStatus status = currentTask.getTaskStatus();
+        //boolean isExpired = isTaskExpired();
+        boolean canEdit = canStillEdit();
+
+        boolean isFuture = isTaskInFuture();
+        boolean isRepetitive = currentTask.getFrequency() == TaskFrequency.REPETITIVE;
+
+        // Onemoguci Edit i Delete za vremenske završene i accomplished
+        if (!canEdit || status == TaskStatus.ACCOMPLISHED) {
+            btnEdit.setEnabled(false);
+            btnDelete.setEnabled(false);
+            btnEdit.setAlpha(0.5f);
+            btnDelete.setAlpha(0.5f);
+        }
+
+        // Onemogući Edit za UNACCOMPLISHED
+        if (status == TaskStatus.UNACCOMPLISHED || status == TaskStatus.CANCELED) {
+            btnEdit.setEnabled(false);
+            btnEdit.setAlpha(0.5f);
+        }
+
+        //Zadatak u budućnosti može samo da se otkaže
+        if (isFuture && status == TaskStatus.ACTIVE) {
+            btnEdit.setEnabled(true);
+            btnEdit.setAlpha(1.0f);
+            // Omogući samo prebacivanje u CANCELLED
+            spinnerStatus.setEnabled(true);
+            // Ostala polja onemogući
+            //etName.setEnabled(false);
+            //etDescription.setEnabled(false);
+            //spinnerImportance.setEnabled(false);
+            //spinnerDifficulty.setEnabled(false);
+        }
+
+        //PAUSED je dostupan samo za repetitive taskove
+        if (!isRepetitive) {
+            // Ukloni PAUSED iz spinner opcija
+            ArrayAdapter<TaskStatus> adapter = new ArrayAdapter<>(
+                    this,
+                    android.R.layout.simple_spinner_item,
+                    getStatusOptionsWithoutPaused()
+            );
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinnerStatus.setAdapter(adapter);
+            setSpinnerEnumSelection(spinnerStatus, currentTask.getTaskStatus());
+        }
+    }
+
+    private TaskStatus[] getStatusOptionsWithoutPaused() {
+        return new TaskStatus[]{
+                TaskStatus.ACTIVE,
+                TaskStatus.ACCOMPLISHED,
+                TaskStatus.UNACCOMPLISHED,
+                TaskStatus.CANCELED
+        };
+    }
+
+    private boolean isTaskInFuture() {
+        if (currentTask.getFrequency() == TaskFrequency.ONETIME && currentTask.getExecutionDate() == null) return false;
+        if (currentTask.getFrequency() == TaskFrequency.REPETITIVE && currentTask.getEndDate() == null) return false;
+        if(currentTask.getFrequency() == TaskFrequency.ONETIME)
+            return currentTask.getExecutionDate().getTime() > System.currentTimeMillis();
+        else
+            return currentTask.getEndDate().getTime() > System.currentTimeMillis();
+    }
+
+    private boolean isTaskToday() {
+        if (currentTask.getFrequency() == TaskFrequency.ONETIME && currentTask.getExecutionDate() == null) return false;
+        if (currentTask.getFrequency() == TaskFrequency.REPETITIVE && currentTask.getEndDate() == null) return false;
+
+        Calendar taskCal = Calendar.getInstance();
+        if (currentTask.getFrequency() == TaskFrequency.ONETIME) {
+            taskCal.setTime(currentTask.getExecutionDate());
+        } else {
+            taskCal.setTime(currentTask.getEndDate());
+        }
+
+        Calendar today = Calendar.getInstance();
+
+        return taskCal.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+                taskCal.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR);
+    }
+
+//    private boolean isTaskExpired() {
+//        if (currentTask.getFrequency() == TaskFrequency.ONETIME && currentTask.getExecutionDate() == null) return false;
+//        if (currentTask.getFrequency() == TaskFrequency.REPETITIVE && currentTask.getEndDate() == null) return false;
+//
+//        Calendar taskCal = Calendar.getInstance();
+//
+//        if (currentTask.getFrequency() == TaskFrequency.ONETIME) {
+//            taskCal.setTime(currentTask.getExecutionDate());
+//        } else {
+//            taskCal.setTime(currentTask.getEndDate());
+//        }
+//
+//        taskCal.set(Calendar.HOUR_OF_DAY, 23);
+//        taskCal.set(Calendar.MINUTE, 59);
+//        taskCal.set(Calendar.SECOND, 59);
+//
+//        return taskCal.getTimeInMillis() < System.currentTimeMillis();
+//    }
+
+    // ZAMENI staru isTaskExpired() metodu sa ovom:
+    private boolean isTaskExpired() {
+        Date referenceDate;
+
+        // Za repetitive taskove koristi endDate, za ostale executionDate
+        if (currentTask.getFrequency() == TaskFrequency.REPETITIVE) {
+            referenceDate = currentTask.getEndDate();
+        } else {
+            referenceDate = currentTask.getExecutionDate();
+        }
+
+        if (referenceDate == null) return false;
+
+        Calendar taskCal = Calendar.getInstance();
+        taskCal.setTime(referenceDate);
+        taskCal.set(Calendar.HOUR_OF_DAY, 23);
+        taskCal.set(Calendar.MINUTE, 59);
+        taskCal.set(Calendar.SECOND, 59);
+
+        taskCal.add(Calendar.DAY_OF_YEAR, 3);
+
+        return taskCal.getTimeInMillis() < System.currentTimeMillis();
+    }
+
+    // DODAJ novu helper metodu:
+    private boolean canStillEdit() {
+        Date referenceDate;
+
+        if (currentTask.getFrequency() == TaskFrequency.REPETITIVE) {
+            referenceDate = currentTask.getEndDate();
+        } else {
+            referenceDate = currentTask.getExecutionDate();
+        }
+
+        if (referenceDate == null) return true; // Ako nema datum, može se editovati
+
+        Calendar gracePeriodEnd = Calendar.getInstance();
+        gracePeriodEnd.setTime(referenceDate);
+        gracePeriodEnd.set(Calendar.HOUR_OF_DAY, 23);
+        gracePeriodEnd.set(Calendar.MINUTE, 59);
+        gracePeriodEnd.set(Calendar.SECOND, 59);
+        gracePeriodEnd.add(Calendar.DAY_OF_YEAR, 3); // 3 dana period
+
+        return System.currentTimeMillis() <= gracePeriodEnd.getTimeInMillis();
     }
 }

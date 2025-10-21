@@ -8,13 +8,20 @@
     <com.applandeo.materialcalendarview.CalendarView
         android:id="@+id/calendarView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:selectionColor="#66b2b2"/>
+        android:layout_height="458dp"
+        app:selectionColor="#66b2b2" />
 
-    <ListView
-        android:id="@+id/lvTasksCalendar"
+<!--    <ListView-->
+<!--        android:id="@+id/lvTasksCalendar"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:divider="@android:color/darker_gray"-->
+<!--        android:dividerHeight="0.5dp"/>-->
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerCalendarTasks"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:divider="@android:color/darker_gray"
-        android:dividerHeight="0.5dp"/>
+        android:layout_height="159dp"
+        android:layout_weight="1"
+        android:padding="8dp" />
 </LinearLayout>

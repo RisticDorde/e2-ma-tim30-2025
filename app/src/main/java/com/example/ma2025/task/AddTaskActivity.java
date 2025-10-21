@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.ma2025.R;
+import com.example.ma2025.auth.AuthManager;
 import com.example.ma2025.category.CategoryRepository;
 import com.example.ma2025.model.Category;
 import com.example.ma2025.model.Task;
@@ -92,7 +93,7 @@ public class AddTaskActivity extends AppCompatActivity {
         );
         spinnerCategory.setAdapter(categoryAdapter);
 
-        categoryRepository.getAllCategories()
+        categoryRepository.getCategoriesByUserId(AuthManager.getCurrentUser(this).getUid())
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     categoryList.clear();
@@ -187,6 +188,7 @@ public class AddTaskActivity extends AppCompatActivity {
         task.setCategoryId(categoryId);
         task.setTotalXP( task.getDifficulty().getXp() + task.getImportance().getXp());
         task.setTaskStatus(TaskStatus.ACTIVE);
+        task.setUserId(AuthManager.getCurrentUser(this).getUid());
 
         if (freq == TaskFrequency.ONETIME) {
             if (executionDate == null) {
