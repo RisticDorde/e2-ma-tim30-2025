@@ -82,22 +82,49 @@ public class AllianceRepository {
                 .document(allianceId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
+                    if (!documentSnapshot.exists()) {
+                        Log.e(TAG, "Alliance not found");
+                        if (listener != null) listener.onFailure("Alliance not found");
+                        return;
+                    }
+
                     Alliance alliance = documentSnapshot.toObject(Alliance.class);
                     if (alliance != null) {
+                        // Proveri da li član već postoji
+                        if (alliance.getMemberEmails() != null &&
+                                alliance.getMemberEmails().contains(memberEmail)) {
+                            Log.d(TAG, "Member already exists in alliance");
+                            if (listener != null) listener.onSuccess();
+                            return;
+                        }
+
+                        // Dodaj člana u objekat
                         alliance.addMember(memberId, memberEmail);
+
+                        // KLJUČNO: Koristi update sa mapom da ne prebrišeš ostale podatke
+                        Map<String, Object> updates = new HashMap<>();
+                        updates.put("memberIds", alliance.getMemberIds());
+                        updates.put("memberEmails", alliance.getMemberEmails());
 
                         firestore.collection("alliances")
                                 .document(allianceId)
-                                .set(alliance)
+                                .update(updates)
                                 .addOnSuccessListener(aVoid -> {
-                                    Log.d(TAG, "Member added successfully");
+                                    Log.d(TAG, "Member added successfully: " + memberEmail);
                                     if (listener != null) listener.onSuccess();
                                 })
                                 .addOnFailureListener(e -> {
                                     Log.e(TAG, "Error adding member", e);
                                     if (listener != null) listener.onFailure(e.getMessage());
                                 });
+                    } else {
+                        Log.e(TAG, "Failed to parse alliance object");
+                        if (listener != null) listener.onFailure("Failed to parse alliance");
                     }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching alliance", e);
+                    if (listener != null) listener.onFailure(e.getMessage());
                 });
     }
     public void removeMemberFromAlliance(String allianceId, String memberId, String memberEmail, OnOperationListener listener) {
