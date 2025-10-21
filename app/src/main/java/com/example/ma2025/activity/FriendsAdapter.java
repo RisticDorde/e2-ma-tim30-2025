@@ -10,25 +10,32 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-
 import com.example.ma2025.R;
 import com.example.ma2025.model.Friend;
 
 import java.util.List;
+import java.util.Map;
 
 public class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.FriendViewHolder> {
 
+    private List<Friend> friendList;
+    private OnFriendClickListener listener;
+    private Map<String, Boolean> friendshipStatusMap;
+
     public interface OnFriendClickListener {
-        void onProfileClick(String userId);
-        void onAddFriendClick(String userId);
+        void onProfileClick(String email);
+        void onAddFriendClick(Friend friend);
+        void onRemoveFriendClick(Friend friend);
     }
 
-    private List<Friend> friends;
-    private OnFriendClickListener listener;
-
-    public FriendsAdapter(List<Friend> friends, OnFriendClickListener listener) {
-        this.friends = friends;
+    public FriendsAdapter(List<Friend> friendList, OnFriendClickListener listener) {
+        this.friendList = friendList;
         this.listener = listener;
+    }
+
+    public void setFriendshipStatusMap(Map<String, Boolean> friendshipStatusMap) {
+        this.friendshipStatusMap = friendshipStatusMap;
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -41,36 +48,80 @@ public class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.FriendVi
 
     @Override
     public void onBindViewHolder(@NonNull FriendViewHolder holder, int position) {
-        Friend friend = friends.get(position);
-
-        int avatarResId = holder.itemView.getContext()
-                .getResources()
-                .getIdentifier(friend.getAvatar(), "drawable", holder.itemView.getContext().getPackageName());
-
-        holder.avatar.setImageResource(avatarResId);
-
-        holder.username.setText(friend.getUsername());
-
-        holder.itemView.setOnClickListener(v -> listener.onProfileClick(friend.getEmail()));
-        holder.btnAdd.setOnClickListener(v -> listener.onAddFriendClick(friend.getId()));
+        Friend friend = friendList.get(position);
+        boolean isFriend = friendshipStatusMap != null &&
+                friendshipStatusMap.containsKey(friend.getEmail());
+        holder.bind(friend, listener, isFriend);
     }
 
     @Override
     public int getItemCount() {
-        return friends.size();
+        return friendList.size();
     }
 
     static class FriendViewHolder extends RecyclerView.ViewHolder {
-        ImageView avatar;
-        TextView username;
-        Button btnAdd;
+        ImageView ivAvatar;
+        TextView tvUsername;
+        TextView tvEmail;
+        Button btnAddFriend;
 
-        public FriendViewHolder(@NonNull View itemView) {
+        FriendViewHolder(View itemView) {
             super(itemView);
-            avatar = itemView.findViewById(R.id.friend_avatar);
-            username = itemView.findViewById(R.id.friend_username);
-            btnAdd = itemView.findViewById(R.id.add_friend_btn);
+            ivAvatar = itemView.findViewById(R.id.iv_friend_avatar);
+            tvUsername = itemView.findViewById(R.id.tv_friend_username);
+            tvEmail = itemView.findViewById(R.id.tv_friend_email);
+            btnAddFriend = itemView.findViewById(R.id.btn_add_friend);
+        }
+
+        void bind(Friend friend, OnFriendClickListener listener, boolean isFriend) {
+            tvUsername.setText(friend.getUsername());
+
+            // Učitaj avatar
+            if (friend.getAvatar() != null && !friend.getAvatar().isEmpty()) {
+                try {
+                    // Ako je avatar resource name (npr. "avatar1")
+                    int avatarResId = itemView.getContext().getResources()
+                            .getIdentifier(friend.getAvatar(), "drawable", itemView.getContext().getPackageName());
+
+                    if (avatarResId != 0) {
+                        ivAvatar.setImageResource(avatarResId);
+                    } else {
+                        ivAvatar.setImageResource(R.drawable.avatar_1);
+                    }
+                } catch (Exception e) {
+                    ivAvatar.setImageResource(R.drawable.avatar_1);
+                }
+            } else {
+                ivAvatar.setImageResource(R.drawable.avatar_1);
+            }
+
+            // Klik na avatar otvara profil
+            ivAvatar.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onProfileClick(friend.getEmail());
+                }
+            });
+
+            // Postavi dugme na osnovu statusa prijateljstva
+            if (isFriend) {
+                btnAddFriend.setText("Ukloni");
+                btnAddFriend.setBackgroundColor(itemView.getContext().getResources()
+                        .getColor(android.R.color.holo_red_light));
+                btnAddFriend.setOnClickListener(v -> {
+                    if (listener != null) {
+                        listener.onRemoveFriendClick(friend);
+                    }
+                });
+            } else {
+                btnAddFriend.setText("Dodaj");
+                btnAddFriend.setBackgroundColor(itemView.getContext().getResources()
+                        .getColor(android.R.color.holo_green_light));
+                btnAddFriend.setOnClickListener(v -> {
+                    if (listener != null) {
+                        listener.onAddFriendClick(friend);
+                    }
+                });
+            }
         }
     }
 }
-

@@ -5,12 +5,14 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Build;
 import android.widget.Toast;
 
 import com.example.ma2025.activity.MainActivity;
 import com.example.ma2025.database.DatabaseHelper;
 import com.example.ma2025.model.User;
 import com.example.ma2025.repository.UserRepository;
+import com.example.ma2025.services.AllianceInvitationService;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.ActionCodeSettings;
 import com.google.firebase.auth.FirebaseAuth;
@@ -59,6 +61,7 @@ public class AuthManager {
                     }
                 });
     }
+
     public static void loginUser(Context context, String email, String password) {
         FirebaseAuth mAuth = getAuthInstance(context);
 
@@ -82,6 +85,10 @@ public class AuthManager {
 
                         if (firebaseUser != null && firebaseUser.isEmailVerified()) {
                             Toast.makeText(context, "Uspesno logovanje!", Toast.LENGTH_SHORT).show();
+
+                            // POKRENI SERVIS ZA SLUŠANJE POZIVA
+                            startAllianceInvitationService(context);
+
                             Intent intent = new Intent(context, MainActivity.class);
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             context.startActivity(intent);
@@ -101,10 +108,23 @@ public class AuthManager {
                 });
     }
 
+    private static void startAllianceInvitationService(Context context) {
+        Intent serviceIntent = new Intent(context, AllianceInvitationService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(serviceIntent);
+        } else {
+            context.startService(serviceIntent);
+        }
+    }
 
     public static void logoutUser(Context context) {
         FirebaseAuth mAuth = getAuthInstance(context);
         mAuth.signOut();
+
+        // ZAUSTAVI SERVIS KADA SE KORISNIK IZLOGUJE
+        Intent serviceIntent = new Intent(context, AllianceInvitationService.class);
+        context.stopService(serviceIntent);
+
         Toast.makeText(context, "Odjavljeni ste.", Toast.LENGTH_SHORT).show();
     }
 
@@ -113,4 +133,3 @@ public class AuthManager {
         return mAuth.getCurrentUser();
     }
 }
-

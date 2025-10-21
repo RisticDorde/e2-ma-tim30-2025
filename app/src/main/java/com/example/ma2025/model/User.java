@@ -181,8 +181,10 @@ public class User {
 //                ", bossHP=" + this.bossRemainingHp + ", level=" + this.level.getLevelNumber());
 //        userRepo.updateUser(this);
 //    }
-public void addExperience(int xpToAdd, boolean defeatedBoss, int coinsRewardIfBoss, UserRepository userRepo) {
+public void addExperience(int baseXpLevel1, boolean defeatedBoss, int coinsRewardIfBoss, UserRepository userRepo) {
+    int xpToAdd = TaskXpCalculator.getXpForLevel(baseXpLevel1, this.level.getLevelNumber());
     this.experiencePoints += xpToAdd;
+
     Log.d("ADD_XP_START", "XP before: " + this.experiencePoints +
             ", Level=" + this.level.getLevelNumber() +
             ", BossIndex=" + this.currentBossIndex +
