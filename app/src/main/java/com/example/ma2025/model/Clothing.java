@@ -7,6 +7,7 @@ public class Clothing {
     private int price;          // cena u novčićima
     private int duration;       // koliko borbi traje
     private boolean isActivated;
+    private boolean isOwned = false;
 
     public Clothing() {}
     public Clothing(String name, String type, double bonus, int price) {
@@ -16,6 +17,7 @@ public class Clothing {
         this.price = price;
         this.duration = 2;          // po zadatku traje 2 borbe
         this.isActivated = false;
+        this.isOwned = false;
     }
 
     public String getName() {
@@ -44,6 +46,14 @@ public class Clothing {
 
     public void setActivated(boolean activated) {
         isActivated = activated;
+    }
+
+    public boolean isOwned() {
+        return isOwned;
+    }
+
+    public void setOwned(boolean owned) {
+        isOwned = owned;
     }
 
     public void decreaseDuration() {

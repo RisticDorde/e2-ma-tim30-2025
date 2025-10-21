@@ -307,6 +307,45 @@ public void addExperience(int baseXpLevel1, boolean defeatedBoss, int coinsRewar
         return canFight;
     }
 
+    // Provera da li već ima taj item
+    public boolean hasWeapon(String weaponName) {
+        for (Weapon w : weapons) {
+            if (w.getName().equals(weaponName) && w.isOwned()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean hasClothing(String clothingName) {
+        for (Clothing c : clothings) {
+            if (c.getName().equals(clothingName) && c.isOwned())
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Dodavanje novog itema
+    public void addWeapon(Weapon weapon) {
+        weapons.add(weapon);
+    }
+
+    public void addClothing(Clothing clothing) {
+        clothings.add(clothing);
+    }
+
+    // Za aktivnu opremu (equipovano)
+    public void equipItem(String itemName) {
+        if (!currentEquipment.contains(itemName)) {
+            currentEquipment.add(itemName);
+        }
+    }
+
+    public void unequipItem(String itemName) {
+        currentEquipment.remove(itemName);
+    }
 
     public List<Potion> getPotions() {
         return potions;
