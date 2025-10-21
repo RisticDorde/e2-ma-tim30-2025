@@ -1,4 +1,4 @@
-package com.example.ma2025.activity;
+package com.example.ma2025.adapter;
 
 import android.view.LayoutInflater;
 import android.view.View;
