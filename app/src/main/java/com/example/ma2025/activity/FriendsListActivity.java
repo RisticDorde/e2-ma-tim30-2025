@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ma2025.R;
 
+import com.example.ma2025.adapter.FriendSelectionAdapter;
+import com.example.ma2025.adapter.FriendsAdapter;
 import com.example.ma2025.model.Alliance;
 import com.example.ma2025.model.AllianceInvitation;
 import com.example.ma2025.model.Friend;

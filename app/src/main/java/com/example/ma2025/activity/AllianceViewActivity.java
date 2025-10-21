@@ -14,6 +14,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ma2025.R;
+import com.example.ma2025.adapter.AllianceMemberAdapter;
+import com.example.ma2025.adapter.FriendSelectionAdapter;
 import com.example.ma2025.model.Alliance;
 import com.example.ma2025.model.AllianceInvitation;
 import com.example.ma2025.model.Friend;
@@ -32,7 +34,7 @@ public class AllianceViewActivity extends AppCompatActivity {
 
     private TextView tvAllianceName, tvLeaderInfo, tvMemberCount, tvMissionStatus;
     private RecyclerView recyclerMembers;
-    private MaterialButton btnLeaveAlliance, btnDisbandAlliance, btnInviteMembers, btnBack;
+    private MaterialButton btnOpenChat, btnLeaveAlliance, btnDisbandAlliance, btnInviteMembers, btnBack;
 
     private AllianceRepository allianceRepository;
     private UserRepository userRepository;
@@ -52,6 +54,7 @@ public class AllianceViewActivity extends AppCompatActivity {
         tvMemberCount = findViewById(R.id.tv_member_count);
         tvMissionStatus = findViewById(R.id.tv_mission_status);
         recyclerMembers = findViewById(R.id.recycler_members);
+        btnOpenChat = findViewById(R.id.btn_open_chat);
         btnLeaveAlliance = findViewById(R.id.btn_leave_alliance);
         btnDisbandAlliance = findViewById(R.id.btn_disband_alliance);
         btnInviteMembers = findViewById(R.id.btn_invite_members);
@@ -65,11 +68,24 @@ public class AllianceViewActivity extends AppCompatActivity {
         recyclerMembers.setLayoutManager(new LinearLayoutManager(this));
 
         btnBack.setOnClickListener(v -> finish());
+        btnOpenChat.setOnClickListener(v -> openAllianceChat());
         btnLeaveAlliance.setOnClickListener(v -> confirmLeaveAlliance());
         btnDisbandAlliance.setOnClickListener(v -> confirmDisbandAlliance());
         btnInviteMembers.setOnClickListener(v -> showInviteFriendsDialog());
 
         loadAllianceData();
+    }
+
+    /**
+     * Otvara chat stranicu saveza
+     */
+    private void openAllianceChat() {
+        if (currentAlliance != null) {
+            Intent intent = new Intent(this, AllianceChatActivity.class);
+            startActivity(intent);
+        } else {
+            Toast.makeText(this, "Savez nije učitan", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void loadAllianceData() {

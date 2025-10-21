@@ -6,8 +6,11 @@ import android.util.Log;
 import com.example.ma2025.model.AcceptanceNotification;
 import com.example.ma2025.model.Alliance;
 import com.example.ma2025.model.AllianceInvitation;
+import com.example.ma2025.model.AllianceMessage;
+import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
@@ -310,6 +313,107 @@ public class AllianceRepository {
                     Log.e(TAG, "Error marking notification as seen", e);
                     if (listener != null) listener.onFailure(e.getMessage());
                 });
+    }
+
+    // ========== DODAJ OVE METODE U AllianceRepository.java ==========
+
+    /**
+     * Šalje poruku u savez
+     */
+    public void sendMessage(AllianceMessage message, OnOperationListener listener) {
+        String messageId = firestore.collection("alliance_messages").document().getId();
+        message.setId(messageId);
+
+        firestore.collection("alliance_messages")
+                .document(messageId)
+                .set(message)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "Message sent successfully: " + messageId);
+                    if (listener != null) listener.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error sending message", e);
+                    if (listener != null) listener.onFailure(e.getMessage());
+                });
+    }
+
+    /**
+     * Dohvata sve poruke saveza (za inicijalno učitavanje)
+     */
+    public void getAllianceMessages(String allianceId, OnMessagesFetchedListener listener) {
+        firestore.collection("alliance_messages")
+                .whereEqualTo("allianceId", allianceId)
+                .orderBy("timestamp", Query.Direction.ASCENDING)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    List<AllianceMessage> messages = new ArrayList<>();
+                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                        AllianceMessage message = doc.toObject(AllianceMessage.class);
+                        if (message != null) {
+                            messages.add(message);
+                        }
+                    }
+                    Log.d(TAG, "Fetched " + messages.size() + " messages");
+                    if (listener != null) listener.onSuccess(messages);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching messages", e);
+                    if (listener != null) listener.onFailure(e.getMessage());
+                });
+    }
+
+    /**
+     * Real-time listener za nove poruke
+     * Ova metoda vraća ListenerRegistration koji treba da se ukloni kad izađeš iz četa
+     */
+    public ListenerRegistration listenForNewMessages(String allianceId, OnNewMessageListener listener) {
+        return firestore.collection("alliance_messages")
+                .whereEqualTo("allianceId", allianceId)
+                .orderBy("timestamp", Query.Direction.ASCENDING)
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null) {
+                        Log.e(TAG, "Listen for messages failed", error);
+                        return;
+                    }
+
+                    if (snapshots != null) {
+                        for (DocumentChange dc : snapshots.getDocumentChanges()) {
+                            if (dc.getType() == DocumentChange.Type.ADDED) {
+                                AllianceMessage message = dc.getDocument().toObject(AllianceMessage.class);
+                                Log.d(TAG, "New message received: " + message.getMessageText());
+                                if (listener != null) {
+                                    listener.onNewMessage(message);
+                                }
+                            }
+                        }
+                    }
+                });
+    }
+
+    /**
+     * Briše poruku (samo pošiljalac može)
+     */
+    public void deleteMessage(String messageId, OnOperationListener listener) {
+        firestore.collection("alliance_messages")
+                .document(messageId)
+                .delete()
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "Message deleted");
+                    if (listener != null) listener.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error deleting message", e);
+                    if (listener != null) listener.onFailure(e.getMessage());
+                });
+    }
+
+    public interface OnMessagesFetchedListener {
+        void onSuccess(List<AllianceMessage> messages);
+        void onFailure(String error);
+    }
+
+    public interface OnNewMessageListener {
+        void onNewMessage(AllianceMessage message);
     }
 
     // Novi callback interfejs

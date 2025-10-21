@@ -65,6 +65,19 @@
 
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Chat dugme (prominentno) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_open_chat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="💬 Otvori Savezni Chat"
+            android:textSize="16sp"
+            android:textColor="@android:color/white"
+            android:padding="16dp"
+            android:layout_marginBottom="24dp"
+            app:icon="@android:drawable/ic_menu_send"
+            app:iconGravity="textStart"/>
+
         <!-- Članovi lista -->
         <TextView
             android:layout_width="wrap_content"
@@ -81,27 +94,14 @@
             android:layout_marginBottom="16dp"
             android:nestedScrollingEnabled="false"/>
 
-        <!-- Chat sekcija (placeholder za sada) -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Chat"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="8dp"/>
-
-        <TextView
+        <!-- Dugmad -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_invite_members"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Chat funkcionalnost će biti dostupna uskoro..."
-            android:textSize="14sp"
-            android:textColor="@android:color/darker_gray"
-            android:padding="16dp"
-            android:background="@android:color/darker_gray"
-            android:layout_marginBottom="16dp"/>
+            android:text="Pozovi Nove Članove"
+            android:layout_marginTop="16dp"/>
 
-        <!-- Dugmad -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_leave_alliance"
             android:layout_width="match_parent"
@@ -121,13 +121,6 @@
             android:textColor="@android:color/white"
             android:layout_marginTop="8dp"
             android:visibility="gone"/>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_invite_members"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Pozovi Nove Članove"
-            android:layout_marginTop="16dp"/>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_back"
