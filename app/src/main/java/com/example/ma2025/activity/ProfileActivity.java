@@ -50,6 +50,12 @@ public class ProfileActivity extends AppCompatActivity {
         userRepo = new UserRepository(this);
         initViews();
 
+        Button statisticsBtn = findViewById(R.id.btn_statistics);
+        statisticsBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, StatisticsActivity.class);
+            startActivity(intent);
+        });
+
         String viewedEmail = getIntent().getStringExtra("viewed_email");
 
         if (viewedEmail == null) {

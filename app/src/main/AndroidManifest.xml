@@ -16,6 +16,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MA2025">
         <activity
+            android:name=".activity.StatisticsActivity"
+            android:exported="false" />
+        <activity
             android:name=".activity.AllianceChatActivity"
             android:exported="false" />
         <activity

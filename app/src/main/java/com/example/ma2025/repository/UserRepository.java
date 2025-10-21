@@ -217,9 +217,9 @@ public class UserRepository {
         updates.put("equipment", user.getEquipment());
         updates.put("currentEquipment", user.getCurrentEquipment());
         updates.put("qrCode", user.getQrCode());
-        updates.put("potions", gson.toJson(user.getPotions()));
-        updates.put("weapons", gson.toJson(user.getWeapons()));
-        updates.put("clothings", gson.toJson(user.getClothings()));
+        updates.put("potions", user.getPotions());
+        updates.put("weapons", user.getWeapons());
+        updates.put("clothings", user.getClothings());
         updates.put("current_boss_index", gson.toJson(user.getCurrentBossIndex()));
         updates.put("boss_remaining_hp", gson.toJson(user.getBossRemainingHp()));
         updates.put("last_level_up_at", gson.toJson(user.getLastLevelUpAt()));
