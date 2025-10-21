@@ -12,7 +12,7 @@ public class ShakeDetector implements SensorEventListener {
     }
 
     private static final float SHAKE_THRESHOLD_GRAVITY = 2.3F; // osetljivost
-    private static final int SHAKE_SLOP_TIME_MS = 800; // minimalni razmak između 2 shake-a
+    private static final int SHAKE_SLOP_TIME_MS = 2000; // minimalni razmak između 2 shake-a
 
     private OnShakeListener listener;
     private long lastShakeTime;
@@ -54,6 +54,6 @@ public class ShakeDetector implements SensorEventListener {
     }
 
     public void stop() {
-        //listener.;
+        listener = null;
     }
 }
