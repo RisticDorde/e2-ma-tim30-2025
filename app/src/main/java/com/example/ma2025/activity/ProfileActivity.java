@@ -94,7 +94,7 @@ public class ProfileActivity extends AppCompatActivity {
             return;
         }
         Log.d("PROFILE", "Avatar: '" + currentUser.getAvatar() + "'");
-        displayUserData();
+        displayUserData(true);
     }
 
     private void loadUserByEmail(String email) {
@@ -105,10 +105,10 @@ public class ProfileActivity extends AppCompatActivity {
             return;
         }
 
-        displayUserData();
+        displayUserData(false);
     }
 
-    private void displayUserData() {
+    private void displayUserData(boolean isOwnProfile) {
         String avatarName = currentUser.getAvatar();
         Log.d("PROFILE", "Avatar iz baze: '" + avatarName + "'");
 
@@ -126,6 +126,7 @@ public class ProfileActivity extends AppCompatActivity {
 
 
         usernameText.setText(currentUser.getUsername());
+        Log.d("PROFILE", "Username iz baze: '" + currentUser.getUsername() + "'");
         levelText.setText("Nivo " + currentUser.getLevelNumber());
         titleText.setText(currentUser.getTitleDisplayName());
 
