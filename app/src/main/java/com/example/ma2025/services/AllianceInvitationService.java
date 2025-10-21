@@ -8,8 +8,10 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 import com.example.ma2025.helper.NotificationHelper;
+import com.example.ma2025.model.AcceptanceNotification;
 import com.example.ma2025.model.AllianceInvitation;
 import com.example.ma2025.model.User;
+import com.example.ma2025.repository.AllianceRepository;
 import com.example.ma2025.repository.UserRepository;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -39,14 +41,87 @@ public class AllianceInvitationService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "Service started");
 
+        // 🔹 1. Kreiraj kanal za foreground notifikaciju (obavezno za Android 8+)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            android.app.NotificationChannel channel = new android.app.NotificationChannel(
+                    "alliance_service_channel",
+                    "Alliance Service Channel",
+                    android.app.NotificationManager.IMPORTANCE_LOW
+            );
+            android.app.NotificationManager manager = getSystemService(android.app.NotificationManager.class);
+            if (manager != null) {
+                manager.createNotificationChannel(channel);
+            }
+        }
+
+        // 🔹 2. Kreiraj notifikaciju koja se prikazuje dok servis radi
+        androidx.core.app.NotificationCompat.Builder builder =
+                new androidx.core.app.NotificationCompat.Builder(this, "alliance_service_channel")
+                        .setContentTitle("Alliance service active")
+                        .setContentText("Listening for invitations and alliance updates")
+                        .setSmallIcon(android.R.drawable.ic_dialog_info)
+                        .setOngoing(true); // da korisnik ne može lako da je ukloni
+
+        // 🔹 3. Pokreni servis u foreground režimu
+        startForeground(1, builder.build());
+
+        // 🔹 4. Tvoj postojeći kod ostaje isti
         if (currentUser != null) {
             startListeningForInvitations();
+            startListeningForAcceptanceNotifications();
         } else {
             Log.e(TAG, "No current user, stopping service");
             stopSelf();
         }
 
-        return START_STICKY; // Automatski restartuj servis ako se ugasi
+        return START_STICKY;
+    }
+
+
+    private void startListeningForAcceptanceNotifications() {
+        Log.d(TAG, "Starting to listen for acceptance notifications for: " + currentUser.getEmail());
+
+        AllianceRepository allianceRepository = new AllianceRepository(this);
+
+        firestore.collection("acceptance_notifications")
+                .whereEqualTo("leaderEmail", currentUser.getEmail())
+                .whereEqualTo("seen", false)
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null) {
+                        Log.e(TAG, "Listen for acceptance failed", error);
+                        return;
+                    }
+
+                    if (snapshots != null) {
+                        for (DocumentChange dc : snapshots.getDocumentChanges()) {
+                            if (dc.getType() == DocumentChange.Type.ADDED) {
+                                AcceptanceNotification notification = dc.getDocument().toObject(AcceptanceNotification.class);
+                                Log.d(TAG, "New acceptance notification: " + notification.getAcceptedUsername());
+
+                                // Prikaži notifikaciju
+                                notificationHelper.showAcceptedNotification(
+                                        notification.getAcceptedUsername(),
+                                        notification.getAllianceName()
+                                );
+
+                                // Označi kao pročitanu
+                                allianceRepository.markAcceptanceNotificationAsSeen(
+                                        notification.getId(),
+                                        new AllianceRepository.OnOperationListener() {
+                                            @Override
+                                            public void onSuccess() {
+                                                Log.d(TAG, "Notification marked as seen");
+                                            }
+
+                                            @Override
+                                            public void onFailure(String error) {
+                                                Log.e(TAG, "Failed to mark as seen: " + error);
+                                            }
+                                        });
+                            }
+                        }
+                    }
+                });
     }
 
     private void startListeningForInvitations() {

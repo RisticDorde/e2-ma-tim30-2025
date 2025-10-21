@@ -138,13 +138,6 @@ public class AllianceInvitationActivity extends AppCompatActivity {
         });
     }
 
-    private void sendAcceptanceNotificationToLeader() {
-        // Send a notification to the alliance leader
-        notificationHelper.showAcceptedNotification(currentUser.getUsername(), allianceName);
-
-        android.util.Log.d("ALLIANCE", "User " + currentUser.getUsername() + " accepted invitation from leader " + fromEmail);
-    }
-
     private void joinNewAlliance() {
         // Dodaj korisnika u novi savez
         allianceRepository.addMemberToAlliance(
@@ -160,6 +153,9 @@ public class AllianceInvitationActivity extends AppCompatActivity {
                             public void onSuccess() {
                                 // Ukloni notifikaciju
                                 notificationHelper.cancelInvitationNotification(invitationId);
+
+                                // POŠALJI NOTIFIKACIJU VOĐI
+                                sendAcceptanceNotificationToLeader();
 
                                 Toast.makeText(AllianceInvitationActivity.this,
                                         "Pridružio/la si se savezu!",
@@ -188,6 +184,27 @@ public class AllianceInvitationActivity extends AppCompatActivity {
                                 Toast.LENGTH_SHORT).show();
                         btnAccept.setEnabled(true);
                         btnReject.setEnabled(true);
+                    }
+                });
+    }
+
+    private void sendAcceptanceNotificationToLeader() {
+        // Kreiraj notifikaciju u Firebase za vođu
+        allianceRepository.createAcceptanceNotification(
+                allianceId,
+                allianceName,
+                fromEmail, // Email vođe
+                currentUser.getEmail(),
+                currentUser.getUsername(),
+                new AllianceRepository.OnOperationListener() {
+                    @Override
+                    public void onSuccess() {
+                        android.util.Log.d("ALLIANCE", "Acceptance notification sent to leader: " + fromEmail);
+                    }
+
+                    @Override
+                    public void onFailure(String error) {
+                        android.util.Log.e("ALLIANCE", "Failed to send acceptance notification: " + error);
                     }
                 });
     }

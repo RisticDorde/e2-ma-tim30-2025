@@ -3,6 +3,7 @@ package com.example.ma2025.repository;
 import android.content.Context;
 import android.util.Log;
 
+import com.example.ma2025.model.AcceptanceNotification;
 import com.example.ma2025.model.Alliance;
 import com.example.ma2025.model.AllianceInvitation;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -228,6 +229,93 @@ public class AllianceRepository {
                     Log.e(TAG, "Error rejecting invitation", e);
                     if (listener != null) listener.onFailure(e.getMessage());
                 });
+    }
+
+
+
+
+
+
+
+    /**
+     * Kreira notifikaciju za vođu da je korisnik prihvatio poziv
+     */
+    public void createAcceptanceNotification(String allianceId, String allianceName,
+                                             String leaderEmail, String acceptedUserEmail,
+                                             String acceptedUsername, OnOperationListener listener) {
+        String notificationId = firestore.collection("acceptance_notifications").document().getId();
+
+        AcceptanceNotification notification = new AcceptanceNotification(
+                notificationId,
+                allianceId,
+                allianceName,
+                leaderEmail,
+                acceptedUserEmail,
+                acceptedUsername
+        );
+
+        firestore.collection("acceptance_notifications")
+                .document(notificationId)
+                .set(notification)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "Acceptance notification created");
+                    if (listener != null) listener.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error creating acceptance notification", e);
+                    if (listener != null) listener.onFailure(e.getMessage());
+                });
+    }
+
+    /**
+     * Dohvata nepročitane notifikacije o prihvaćenim pozivima za vođu
+     */
+    public void getUnseenAcceptanceNotifications(String leaderEmail, OnAcceptanceNotificationsListener listener) {
+        firestore.collection("acceptance_notifications")
+                .whereEqualTo("leaderEmail", leaderEmail)
+                .whereEqualTo("seen", false)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    List<AcceptanceNotification> notifications = new ArrayList<>();
+                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                        AcceptanceNotification notification = doc.toObject(AcceptanceNotification.class);
+                        if (notification != null) {
+                            notifications.add(notification);
+                        }
+                    }
+                    Log.d(TAG, "Found " + notifications.size() + " unseen acceptance notifications");
+                    if (listener != null) listener.onSuccess(notifications);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching acceptance notifications", e);
+                    if (listener != null) listener.onFailure(e.getMessage());
+                });
+    }
+
+    /**
+     * Označava notifikaciju kao pročitanu
+     */
+    public void markAcceptanceNotificationAsSeen(String notificationId, OnOperationListener listener) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("seen", true);
+
+        firestore.collection("acceptance_notifications")
+                .document(notificationId)
+                .update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "Notification marked as seen");
+                    if (listener != null) listener.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error marking notification as seen", e);
+                    if (listener != null) listener.onFailure(e.getMessage());
+                });
+    }
+
+    // Novi callback interfejs
+    public interface OnAcceptanceNotificationsListener {
+        void onSuccess(List<AcceptanceNotification> notifications);
+        void onFailure(String error);
     }
     public interface OnAllianceCreatedListener {
         void onSuccess(Alliance alliance);

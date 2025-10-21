@@ -43,7 +43,6 @@ public class FriendsListActivity extends AppCompatActivity {
     private List<Friend> allUsersList = new ArrayList<>();
     private List<Friend> myFriendsList = new ArrayList<>();
     private Map<String, Boolean> friendshipStatusMap = new HashMap<>();
-
     private UserRepository userRepository;
     private AllianceRepository allianceRepository;
     private FriendshipRepository friendshipRepository;
