@@ -12,11 +12,16 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ma2025.R;
+import com.example.ma2025.auth.AuthManager;
 import com.example.ma2025.category.CategoryRepository;
 import com.example.ma2025.model.Category;
 import com.example.ma2025.model.Task;
 import com.google.firebase.firestore.ListenerRegistration;
 
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +36,7 @@ public class OneTimeTaskListFragment extends Fragment {
     private ListenerRegistration listener;
     private CategoryRepository categoryRepository;
     private Map<String, Category> categoryMap = new HashMap<>();
+    private String currentUserId;
 
     @Nullable
     @Override
@@ -50,8 +56,10 @@ public class OneTimeTaskListFragment extends Fragment {
         categoryRepository = new CategoryRepository();
         repository = new TaskRepository();
 
+        currentUserId = requireArguments().getString("userId");
+
         // prvo napuni categoryMap
-        categoryRepository.getAllCategories()
+        categoryRepository.getCategoriesByUserId(currentUserId)
                 .get()
                 .addOnSuccessListener(query -> {
                     categoryMap.clear();
@@ -68,7 +76,7 @@ public class OneTimeTaskListFragment extends Fragment {
                     recyclerView.setAdapter(adapter);
 
                     // Firestore listener za zadatke
-                    listener = repository.getAllTasks()
+                    listener = repository.getAllTasksByUserId(currentUserId)
                             .addSnapshotListener((snapshots, e) -> {
                                 if (e != null || snapshots == null) return;
 
@@ -76,7 +84,10 @@ public class OneTimeTaskListFragment extends Fragment {
                                 for (var doc : snapshots) {
                                     Task task = doc.toObject(Task.class);
                                     task.setId(doc.getId());
-                                    if (task.getFrequency() == TaskFrequency.ONETIME && (task.getParentTaskId() == null || task.getParentTaskId().isEmpty())) {
+                                    boolean isTodayOrFuture = !task.getExecutionDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isBefore(LocalDate.now());
+
+                                    if (task.getFrequency() == TaskFrequency.ONETIME && (task.getParentTaskId() == null || task.getParentTaskId().isEmpty())
+                                    && isTodayOrFuture) {
                                         taskList.add(task);
                                     }
                                 }

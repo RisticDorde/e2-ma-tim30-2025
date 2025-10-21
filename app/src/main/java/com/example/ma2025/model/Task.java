@@ -14,6 +14,7 @@ public class Task {
     private String name;
     private String description;
     private String categoryId;
+    private String userId;
 
     private TaskFrequency frequency; //jednokratni ili ponavljajuci
     private int interval;
@@ -150,5 +151,13 @@ public class Task {
 
     public void setTaskStatus(TaskStatus taskStatus) {
         this.taskStatus = taskStatus;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 }

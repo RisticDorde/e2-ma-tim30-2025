@@ -12,11 +12,14 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ma2025.R;
+import com.example.ma2025.auth.AuthManager;
 import com.example.ma2025.category.CategoryRepository;
 import com.example.ma2025.model.Category;
 import com.example.ma2025.model.Task;
 import com.google.firebase.firestore.ListenerRegistration;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +34,7 @@ public class RepeatingTaskListFragment extends Fragment {
     private ListenerRegistration listener;
     private CategoryRepository categoryRepository;
     private Map<String, Category> categoryMap = new HashMap<>();
+    private String currentUserId;
 
     @Nullable
     @Override
@@ -50,8 +54,10 @@ public class RepeatingTaskListFragment extends Fragment {
         categoryRepository = new CategoryRepository();
         repository = new TaskRepository();
 
+        currentUserId = requireArguments().getString("userId");
+
         // prvo napuni categoryMap
-        categoryRepository.getAllCategories()
+        categoryRepository.getCategoriesByUserId(currentUserId)
                 .get()
                 .addOnSuccessListener(query -> {
                     categoryMap.clear();
@@ -68,7 +74,7 @@ public class RepeatingTaskListFragment extends Fragment {
                     recyclerView.setAdapter(adapter);
 
                     // Firestore listener za zadatke
-                    listener = repository.getAllTasks()
+                    listener = repository.getAllTasksByUserId(currentUserId)
                             .addSnapshotListener((snapshots, e) -> {
                                 if (e != null || snapshots == null) return;
 
@@ -77,7 +83,12 @@ public class RepeatingTaskListFragment extends Fragment {
                                     Task task = doc.toObject(Task.class);
                                     task.setId(doc.getId());
                                     if (task.getFrequency() == TaskFrequency.REPETITIVE) {
-                                        taskList.add(task);
+                                        if (task.getEndDate() != null) {
+                                            boolean isTodayOrFuture = !task.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isBefore(LocalDate.now());
+                                            if (isTodayOrFuture) {
+                                                taskList.add(task);
+                                            }
+                                        }
                                     }
                                 }
                                 adapter.notifyDataSetChanged();
