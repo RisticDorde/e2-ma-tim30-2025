@@ -14,18 +14,25 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ma2025.R;
 import com.example.ma2025.auth.AuthManager;
+import com.example.ma2025.model.Clothing;
 import com.example.ma2025.model.User;
+import com.example.ma2025.model.Weapon;
 import com.example.ma2025.repository.UserRepository;
 import com.example.ma2025.task.TaskFrequency;
 import com.example.ma2025.task.TaskRepository;
 import com.example.ma2025.task.TaskStatus;
 import com.google.firebase.firestore.DocumentSnapshot;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
 
 public class BattleActivity extends AppCompatActivity {
@@ -89,6 +96,7 @@ public class BattleActivity extends AppCompatActivity {
         chestHint = findViewById(R.id.chestHint);
         //shakeDetector = new ShakeDetector(this::onChestShaken);
 
+        equipmentImage.setOnClickListener(v -> openEquipmentDialog());
 
         attackButton.setOnClickListener(v -> doAttack());
     }
@@ -250,6 +258,10 @@ public class BattleActivity extends AppCompatActivity {
                     Toast.LENGTH_LONG).show();
 
             // TODO: 20% šansa za equipment
+            // 20% šansa za equipment drop
+            if (new Random().nextInt(100) < 20) {
+                dropRandomEquipment();
+            }
 
             shakeDetector.stop(); // zaustavi dalje detekcije
             sensorManager.unregisterListener(shakeDetector);
@@ -573,6 +585,159 @@ public class BattleActivity extends AppCompatActivity {
     // Callback interface
     interface SuccessRateCallback {
         void onCalculated(double successRate);
+    }
+
+    private void dropRandomEquipment() {
+        Random random = new Random();
+
+        // 95% clothing, 5% weapon
+        boolean isClothing = random.nextInt(100) < 95;
+
+        if (isClothing) {
+            dropRandomClothing();
+        } else {
+            dropRandomWeapon();
+        }
+    }
+
+    private void dropRandomClothing() {
+        // Definiši sve moguće clothinge
+        String[] clothingNames = {
+                "Gloves (+10% power)",
+                "Shield (+10% successful attack)",
+                "Boots (+40% chance for additional attack)"
+        };
+
+        String randomClothing = clothingNames[new Random().nextInt(clothingNames.length)];
+
+        // Proveri da li već ima
+        if (!currentUser.hasClothing(randomClothing)) {
+            // Kreiraj novi clothing objekat
+            Clothing newClothing = createClothing(randomClothing);
+            currentUser.addClothing(newClothing);
+
+            userRepository.updateUser(currentUser); // sačuvaj u bazu
+
+            Toast.makeText(this, "🎁 Dobio si: " + randomClothing + "!",
+                    Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(this, "Već imaš " + randomClothing,
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void dropRandomWeapon() {
+        String[] weaponNames = {"Sword (+5% power)", "Bow (+5% coins)"};
+        String randomWeapon = weaponNames[new Random().nextInt(2)];
+
+        if (!currentUser.hasWeapon(randomWeapon)) {
+            Weapon newWeapon = createWeapon(randomWeapon);
+            currentUser.addWeapon(newWeapon);
+
+            userRepository.updateUser(currentUser);
+
+            Toast.makeText(this, "⚔️ Dobio si ORUŽJE: " + randomWeapon + "!",
+                    Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(this, "Već imaš " + randomWeapon,
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // Helper metode za kreiranje objekata
+    private Clothing createClothing(String name) {
+        switch (name) {
+            case "Gloves (+10% power)":
+                return new Clothing(name, "gloves", 0.10, 60);
+            case "Shield (+10% successful attack)":
+                return new Clothing(name, "shield", 0.10, 60);
+            case "Boots (+40% chance for additional attack)":
+                return new Clothing(name, "boots", 0.40, 80);
+            default:
+                return null;
+        }
+    }
+
+    private Weapon createWeapon(String name) {
+        if (name.equals("Sword (+5% power)")) {
+            return new Weapon(name, "sword", 0.05, 0, true);
+        } else { // Bow
+            return new Weapon(name, "bow", 0.05, 0, true);
+        }
+    }
+
+    private void openEquipmentDialog() {
+        // Pripremi listu svih itema koje user poseduje
+        List<EquipmentItem> equipmentItems = new ArrayList<>();
+
+        // Dodaj weapons
+        for (Weapon weapon : currentUser.getWeapons()) {
+            if (weapon.isOwned()) {
+                boolean isEquipped = currentUser.getCurrentEquipment().contains(weapon.getName());
+                equipmentItems.add(new EquipmentItem(
+                        weapon.getName(),
+                        "weapon",
+                        weapon.getBonus(),
+                        isEquipped
+                ));
+            }
+        }
+
+        // Dodaj clothings
+        for (Clothing clothing : currentUser.getClothings()) {
+            if (clothing.isOwned()) {
+                boolean isEquipped = currentUser.getCurrentEquipment().contains(clothing.getName());
+                equipmentItems.add(new EquipmentItem(
+                        clothing.getName(),
+                        "clothing",
+                        clothing.getBonus(),
+                        isEquipped
+                ));
+            }
+        }
+
+        // Kreiraj dijalog
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_equipment, null);
+        builder.setView(dialogView);
+
+        RecyclerView recyclerView = dialogView.findViewById(R.id.equipmentRecyclerView);
+        TextView noEquipmentText = dialogView.findViewById(R.id.noEquipmentText);
+
+        if (equipmentItems.isEmpty()) {
+            // Nema opreme
+            recyclerView.setVisibility(View.GONE);
+            noEquipmentText.setVisibility(View.VISIBLE);
+        } else {
+            // Prikaži opremu
+            recyclerView.setVisibility(View.VISIBLE);
+            noEquipmentText.setVisibility(View.GONE);
+
+            recyclerView.setLayoutManager(new LinearLayoutManager(this));
+            EquipmentAdapter adapter = new EquipmentAdapter(equipmentItems,
+                    (item, isEquipped) -> {
+                        // Callback kada user čekira/odčekira item
+                        if (isEquipped) {
+                            currentUser.equipItem(item.getName());
+                            Toast.makeText(this, "Equipovano: " + item.getName(), Toast.LENGTH_SHORT).show();
+                        } else {
+                            currentUser.unequipItem(item.getName());
+                            Toast.makeText(this, "Skinuto: " + item.getName(), Toast.LENGTH_SHORT).show();
+                        }
+
+                        // Sačuvaj promene
+                        userRepository.updateUser(currentUser);
+                    });
+            recyclerView.setAdapter(adapter);
+        }
+
+        builder.setPositiveButton("Gotovo", (dialog, which) -> {
+            dialog.dismiss();
+            // Opciono: refresh UI ako treba
+            updateUI();
+        });
+
+        builder.create().show();
     }
 
     @Override
