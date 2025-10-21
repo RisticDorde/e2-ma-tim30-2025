@@ -48,7 +48,7 @@ public class User {
         this.coins = 100;
         this.currentBossIndex = 0;
         this.bossRemainingHp = 0;
-        //this.lastLevelUpAt
+        this.lastLevelUpAt = String.valueOf(System.currentTimeMillis());
     }
 
     public int getId() { return id; }

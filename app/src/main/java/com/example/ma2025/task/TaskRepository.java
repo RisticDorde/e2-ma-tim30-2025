@@ -172,12 +172,45 @@ public class TaskRepository {
     }
 
 
+//    public Query getUserAccomplishedTasksSince(String userId, long fromTimestamp) {
+//        return taskCollection
+//                .whereEqualTo("taskStatus", TaskStatus.ACCOMPLISHED.name())
+//                .whereEqualTo("taskFrequency", TaskFrequency.ONETIME.name())
+//                .whereEqualTo("userId", userId)
+//                .whereGreaterThan("executionDate", new com.google.firebase.Timestamp(new Date(fromTimestamp)));
+//    }
+//
+//    // U TaskRepository - SAMO excluded CANCELED
+//    public Query getUserTotalValidTasksSince(String userId, long fromTimestamp) {
+//        return taskCollection
+//                .whereNotEqualTo("taskStatus", TaskStatus.CANCELED.name())
+//                .whereEqualTo("taskFrequency", TaskFrequency.ONETIME.name())
+//                .whereEqualTo("userId", userId)
+//                .whereGreaterThan("executionDate", new com.google.firebase.Timestamp(new Date(fromTimestamp)));
+//    }
+
+    // ACCOMPLISHED tasks - koristi completedAt
     public Query getUserAccomplishedTasksSince(String userId, long fromTimestamp) {
+        Log.d("TASK_REPO", "Fetching ACCOMPLISHED tasks for user: " + userId);
+        Log.d("TASK_REPO", "  - completedAt >= " + fromTimestamp + " (" + new Date(fromTimestamp) + ")");
+
         return taskCollection
-                .whereEqualTo("taskStatus", TaskStatus.ACCOMPLISHED.name())
-                .whereEqualTo("taskFrequency", TaskFrequency.ONETIME.name())
                 .whereEqualTo("userId", userId)
-                .whereGreaterThan("executionDate", new com.google.firebase.Timestamp(new Date(fromTimestamp)));
+                .whereEqualTo("taskStatus", TaskStatus.ACCOMPLISHED.name())
+                .whereEqualTo("frequency", TaskFrequency.ONETIME.name())
+                .whereGreaterThanOrEqualTo("executionDate", fromTimestamp);
+    }
+
+    // TOTAL tasks - koristi createdAt
+    public Query getUserTotalValidTasksSince(String userId, long fromTimestamp) {
+        Log.d("TASK_REPO", "Fetching TOTAL tasks for user: " + userId);
+        Log.d("TASK_REPO", "  - createdAt >= " + fromTimestamp + " (" + new Date(fromTimestamp) + ")");
+
+        // Ne možemo whereNotEqualTo + drugi uslovi, filtriraj CANCELED na klijentu
+        return taskCollection
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("frequency", TaskFrequency.ONETIME.name())
+                .whereGreaterThanOrEqualTo("executionDate", fromTimestamp);
     }
 
     public DocumentReference getTaskById(String taskId) {
