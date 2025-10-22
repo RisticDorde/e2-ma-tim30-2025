@@ -35,7 +35,14 @@ public class User {
     private long bossRemainingHp;
     private String lastLevelUpAt;
 
-    public User() {}
+    public User()
+    {
+        this.potions = new ArrayList<>();
+        this.clothings = new ArrayList<>();
+        this.weapons = new ArrayList<>();
+        this.equipment = new ArrayList<>();
+        this.currentEquipment = new ArrayList<>();
+    }
 
     public User(String email, String username, String password, String avatar) {
         this.email = email;
@@ -108,12 +115,25 @@ public class User {
     public List<String> getBadges() { return badges; }
     public void setBadges(List<String> badges) { this.badges = badges; }
 
-    public List<String> getEquipment() { return equipment; }
-    public void setEquipment(List<String> equipment) { this.equipment = equipment; }
+    public List<String> getEquipment() {
+        if (equipment == null) {
+            equipment = new ArrayList<>();
+        }
+        return equipment;
+    }
+    public void setEquipment(List<String> equipment) {
+        this.equipment = equipment != null ? equipment : new ArrayList<>();
+    }
 
-    public List<String> getCurrentEquipment() { return currentEquipment; }
-    public void setCurrentEquipment(List<String> currentEquipment) { this.currentEquipment = currentEquipment; }
-
+    public List<String> getCurrentEquipment() {
+        if (currentEquipment == null) {
+            currentEquipment = new ArrayList<>();
+        }
+        return currentEquipment;
+    }
+    public void setCurrentEquipment(List<String> currentEquipment) {
+        this.currentEquipment = currentEquipment != null ? currentEquipment : new ArrayList<>();
+    }
     public String getQrCode() { return qrCode; }
     public void setQrCode(String qrCode) { this.qrCode = qrCode; }
 
@@ -348,29 +368,35 @@ public void addExperience(int baseXpLevel1, boolean defeatedBoss, int coinsRewar
     }
 
     public List<Potion> getPotions() {
+        if (potions == null) {
+            potions = new ArrayList<>();
+        }
         return potions;
     }
 
     public void setPotions(List<Potion> potions) {
-        this.potions = potions;
+        this.potions = potions != null ? potions : new ArrayList<>();
     }
-
     public List<Weapon> getWeapons() {
+        if (weapons == null) {
+            weapons = new ArrayList<>();
+        }
         return weapons;
     }
 
     public void setWeapons(List<Weapon> weapons) {
-        this.weapons = weapons;
+        this.weapons = weapons != null ? weapons : new ArrayList<>();
     }
-
     public List<Clothing> getClothings() {
+        if (clothings == null) {
+            clothings = new ArrayList<>();
+        }
         return clothings;
     }
 
     public void setClothings(List<Clothing> clothings) {
-        this.clothings = clothings;
+        this.clothings = clothings != null ? clothings : new ArrayList<>();
     }
-
     public int getCurrentBossIndex() {
         return currentBossIndex;
     }

@@ -12,6 +12,8 @@ import com.example.ma2025.model.Clothing;
 import com.example.ma2025.model.Potion;
 import com.example.ma2025.model.User;
 import com.example.ma2025.model.Weapon;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -121,6 +123,7 @@ public class UserRepository {
             cursor.close();
         }
         db.close();
+        initializeUserLists(user);
         return user;
     }
 
@@ -231,10 +234,9 @@ public class UserRepository {
                 .addOnFailureListener(e -> Log.e("Firestore", "Greška pri ažuriranju korisnika: " + e.getMessage()));
     }
 
-    /**
-     * Menja lozinku korisnika
-     */
-    public boolean changePassword(String email, String newPassword) {
+    public void changePassword(String email, String currentPassword, String newPassword,
+                               OnPasswordChangeListener listener) {
+        // KORAK 1: Ažuriraj u lokalnoj bazi
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
         ContentValues values = new ContentValues();
@@ -250,51 +252,104 @@ public class UserRepository {
         db.close();
 
         if (result > 0) {
-            // 1. Ažuriraj lozinku i u Firestore
+            Log.d("UserRepository", "Password updated in SQLite");
+
+            // KORAK 2: Ažuriraj u Firestore
             updatePasswordInFirestore(email, newPassword);
 
-            // 2. Ažuriraj lozinku i u Firebase Authentication
-            updatePasswordInFirebaseAuth(newPassword);
+            // KORAK 3: Ažuriraj u Firebase Authentication (sa re-autentifikacijom)
+            updatePasswordInFirebaseAuth(currentPassword, newPassword, listener);
+        } else {
+            Log.e("UserRepository", "Failed to update password in SQLite");
+            if (listener != null) {
+                listener.onFailure("Failed to update password in local database");
+            }
         }
-
-        return result > 0;
     }
 
-    private void updatePasswordInFirebaseAuth(String newPassword) {
+    /**
+     * Ažurira lozinku u Firebase Authentication sa re-autentifikacijom
+     */
+    private void updatePasswordInFirebaseAuth(String currentPassword, String newPassword,
+                                              OnPasswordChangeListener listener) {
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (firebaseUser != null) {
-            firebaseUser.updatePassword(newPassword)
-                    .addOnSuccessListener(aVoid -> {
-                        // Lozinka uspešno promenjena
-                    })
-                    .addOnFailureListener(e -> {
-                        // Na primer, traži ponovnu prijavu ako je sesija stara
-                        // e.getMessage() može biti "Recent login required"
-                    });
+
+        if (firebaseUser == null || firebaseUser.getEmail() == null) {
+            Log.e("UserRepository", "Firebase user not found");
+            if (listener != null) {
+                listener.onFailure("User not logged in");
+            }
+            return;
         }
-    }
 
-    private void updatePasswordInFirestore(String email, String newPassword) {
-        User user = getUserByEmail(email);
-        if (user == null) return;
+        // Re-autentifikacija je OBAVEZNA
+        AuthCredential credential = EmailAuthProvider.getCredential(
+                firebaseUser.getEmail(),
+                currentPassword
+        );
 
-        firestore.collection("users")
-                .document(user.getEmail())
-                .update("password", newPassword)
+        firebaseUser.reauthenticate(credential)
                 .addOnSuccessListener(aVoid -> {
-                    // success
+                    Log.d("UserRepository", "Re-authentication successful");
+
+                    // Sada promeni lozinku
+                    firebaseUser.updatePassword(newPassword)
+                            .addOnSuccessListener(unused -> {
+                                Log.d("UserRepository", "Password updated in Firebase Auth");
+                                if (listener != null) {
+                                    listener.onSuccess();
+                                }
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e("UserRepository", "Failed to update password in Firebase Auth", e);
+                                if (listener != null) {
+                                    listener.onFailure("Failed to update password: " + e.getMessage());
+                                }
+                            });
                 })
                 .addOnFailureListener(e -> {
-                    // handle failure
+                    Log.e("UserRepository", "Re-authentication failed", e);
+
+                    String errorMessage = "Authentication failed";
+                    if (e.getMessage() != null && e.getMessage().contains("password is invalid")) {
+                        errorMessage = "Current password is incorrect";
+                    }
+
+                    if (listener != null) {
+                        listener.onFailure(errorMessage);
+                    }
                 });
     }
 
+    /**
+     * Ažurira lozinku u Firestore (NE PREPORUČUJE SE čuvati lozinke u Firestore!)
+     */
+    private void updatePasswordInFirestore(String email, String newPassword) {
+        firestore.collection("users")
+                .document(email)
+                .update("password", newPassword)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("UserRepository", "Password updated in Firestore");
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("UserRepository", "Failed to update password in Firestore", e);
+                });
+    }
 
+    /**
+     * ZASTARELA VERZIJA - koristi novu metodu sa currentPassword parametrom
+     * @deprecated Koristi {@link #changePassword(String, String, String, OnPasswordChangeListener)}
+     */
+    @Deprecated
     public boolean changePasswordByEmail(String email, String newPassword) {
-        User user = getUserByEmail(email);
-        if (user == null) return false;
+        Log.w("UserRepository", "Using deprecated changePasswordByEmail - provide current password!");
+        return false;
+    }
 
-        return changePassword(email, newPassword);
+    // Callback interfejs za promenu lozinke
+    public interface OnPasswordChangeListener {
+        void onSuccess();
+        void onFailure(String error);
     }
 
     public User getCurrentAppUser(Context context) {
@@ -551,5 +606,25 @@ public class UserRepository {
         publicUser.setQrCode(user.getQrCode());
 
         return publicUser;
+    }
+
+    private void initializeUserLists(User user) {
+        if (user == null) return;
+
+        if (user.getPotions() == null) {
+            user.setPotions(new ArrayList<>());
+        }
+        if (user.getClothings() == null) {
+            user.setClothings(new ArrayList<>());
+        }
+        if (user.getWeapons() == null) {
+            user.setWeapons(new ArrayList<>());
+        }
+        if (user.getEquipment() == null) {
+            user.setEquipment(new ArrayList<>());
+        }
+        if (user.getCurrentEquipment() == null) {
+            user.setCurrentEquipment(new ArrayList<>());
+        }
     }
 }

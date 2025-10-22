@@ -32,12 +32,20 @@ public class Clothing {
         return bonus;
     }
 
+    public void setBonus(double bonus) {
+        this.bonus = bonus;
+    }
+
     public int getPrice() {
         return price;
     }
 
     public int getDuration() {
         return duration;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
     }
 
     public boolean isActivated() {

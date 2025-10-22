@@ -17,10 +17,20 @@ public class ItemEquipmentActivity extends RecyclerView.Adapter<ItemEquipmentAct
 
     private List<Object> equipmentList;
     private boolean showActiveEquipment;
+    private OnActivateClickListener listener;
+
+    // Interface za callback
+    public interface OnActivateClickListener {
+        void onActivateClick(Object equipment, int position);
+    }
 
     public ItemEquipmentActivity(List<Object> equipmentList, boolean showActiveEquipment) {
         this.equipmentList = equipmentList;
         this.showActiveEquipment = showActiveEquipment;
+    }
+
+    public void setOnActivateClickListener(OnActivateClickListener listener) {
+        this.listener = listener;
     }
 
     @NonNull
@@ -33,7 +43,7 @@ public class ItemEquipmentActivity extends RecyclerView.Adapter<ItemEquipmentAct
     @Override
     public void onBindViewHolder(@NonNull EquipmentViewHolder holder, int position) {
         Object equipment = equipmentList.get(position);
-        holder.bind(equipment, showActiveEquipment);
+        holder.bind(equipment, showActiveEquipment, listener, position);
     }
 
     @Override
@@ -53,13 +63,18 @@ public class ItemEquipmentActivity extends RecyclerView.Adapter<ItemEquipmentAct
             btnActivate = itemView.findViewById(R.id.btnActivate);
         }
 
-        public void bind(Object equipment, boolean isActive) {
+        public void bind(Object equipment, boolean isActive, OnActivateClickListener listener, int position) {
             if (equipment instanceof Potion) {
                 bindPotion((Potion) equipment, isActive);
             } else if (equipment instanceof Weapon) {
                 bindWeapon((Weapon) equipment, isActive);
             } else if (equipment instanceof Clothing) {
                 bindClothing((Clothing) equipment, isActive);
+            }
+
+            // Postavi click listener na dugme
+            if (!isActive && listener != null) {
+                btnActivate.setOnClickListener(v -> listener.onActivateClick(equipment, position));
             }
         }
 
@@ -68,7 +83,6 @@ public class ItemEquipmentActivity extends RecyclerView.Adapter<ItemEquipmentAct
             tvBonus.setText("Bonus: +" + (potion.getPowerBonus() * 100) + "% power");
 
             if (isActive) {
-                // AKTIVAN - prikaži koliko je korišćen
                 if (potion.isSingleUse()) {
                     tvDuration.setText("Used: 1/1");
                 } else {
@@ -76,7 +90,6 @@ public class ItemEquipmentActivity extends RecyclerView.Adapter<ItemEquipmentAct
                 }
                 btnActivate.setVisibility(View.GONE);
             } else {
-                // DOSTUPAN - prikaži dugme
                 if (potion.isSingleUse()) {
                     tvDuration.setText("Single-use");
                 } else {
@@ -98,6 +111,7 @@ public class ItemEquipmentActivity extends RecyclerView.Adapter<ItemEquipmentAct
                 btnActivate.setVisibility(View.VISIBLE);
                 btnActivate.setText("Activate");
             }
+
         }
 
         private void bindClothing(Clothing clothing, boolean isActive) {
@@ -105,7 +119,6 @@ public class ItemEquipmentActivity extends RecyclerView.Adapter<ItemEquipmentAct
             tvBonus.setText("Bonus: +" + (clothing.getBonus() * 100) + "%");
 
             if (isActive) {
-                // AKTIVNA - prikaži koliko je korišćena
                 int maxDuration = 2;
                 int remaining = clothing.getDuration();
                 tvDuration.setText("Used: " + (maxDuration - remaining) + "/" + maxDuration);

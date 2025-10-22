@@ -16,6 +16,8 @@ import com.example.ma2025.model.Shop;
 import com.example.ma2025.model.User;
 import com.example.ma2025.repository.UserRepository;
 
+import java.util.ArrayList;
+
 public class ShopActivity extends AppCompatActivity {
 
     private TextView tvCoins;
@@ -35,7 +37,8 @@ public class ShopActivity extends AppCompatActivity {
         tvCoins = findViewById(R.id.tvCoins);
         shopItemsContainer = findViewById(R.id.shopItemsContainer);
 
-        shop = new Shop(); // kreira listu itema
+        // Proslijedi trenutni boss index za izračunavanje cijena
+        shop = new Shop(currentUser.getCurrentBossIndex());
         updateCoinsView();
 
         showShopItems();
@@ -46,18 +49,33 @@ public class ShopActivity extends AppCompatActivity {
     }
 
     private void showShopItems() {
-        // prikazujemo POTIONE
+        // Inicijalizuj liste ako su null
+        if (currentUser.getPotions() == null) {
+            currentUser.setPotions(new ArrayList<>());
+        }
+        if (currentUser.getClothings() == null) {
+            currentUser.setClothings(new ArrayList<>());
+        }
+
+        // Prikazujemo POTIONE
         for (Potion potion : shop.getPotions()) {
             addItemToShop(potion.getName(), potion.getPrice(), () -> {
                 if (currentUser.getCoins() >= potion.getPrice()) {
                     int coins = currentUser.getCoins() - potion.getPrice();
                     currentUser.setCoins(coins);
 
-                    // Dodaj opremu
-                    currentUser.getEquipment().add(potion.getName());
-                    currentUser.getPotions().add(potion);
+                    // Kreiraj NOVI potion sa defaultnim vrednostima
+                    Potion newPotion = new Potion(
+                            potion.getName(),
+                            potion.isSingleUse(),
+                            potion.getPowerBonus(),
+                            potion.getPrice(),
+                            potion.isSingleUse() ? 1 : -1 // duration
+                    );
+                    newPotion.setActivated(false); // NIJE aktiviran odmah!
 
-                    // Sačuvaj u bazu
+                    currentUser.getPotions().add(newPotion);
+
                     boolean success = repo.updateUser(currentUser);
 
                     if (success) {
@@ -72,18 +90,39 @@ public class ShopActivity extends AppCompatActivity {
             });
         }
 
-        // prikazujemo CLOTHING
+        // Prikazujemo CLOTHING
         for (Clothing clothing : shop.getClothes()) {
             addItemToShop(clothing.getName(), clothing.getPrice(), () -> {
                 if (currentUser.getCoins() >= clothing.getPrice()) {
                     int coins = currentUser.getCoins() - clothing.getPrice();
                     currentUser.setCoins(coins);
 
-                    // Dodaj opremu
-                    currentUser.getEquipment().add(clothing.getName());
-                    currentUser.getClothings().add(clothing);
+                    // Proveri da li već ima istu odeću
+                    boolean alreadyHas = false;
+                    for (Clothing c : currentUser.getClothings()) {
+                        if (c.getType().equals(clothing.getType())) {
+                            // SABERI bonuse!
+                            c.setBonus(c.getBonus() + clothing.getBonus());
+                            c.setDuration(2); // Resetuj trajanje na 2
+                            alreadyHas = true;
+                            Toast.makeText(this, "Bonus increased! Now: +" + (int)(c.getBonus() * 100) + "%", Toast.LENGTH_LONG).show();
+                            break;
+                        }
+                    }
 
-                    // Sačuvaj u bazu
+                    if (!alreadyHas) {
+                        // Dodaj novu odeću
+                        Clothing newClothing = new Clothing(
+                                clothing.getName(),
+                                clothing.getType(),
+                                clothing.getBonus(),
+                                clothing.getPrice()
+                        );
+                        newClothing.setActivated(false);
+                        newClothing.setOwned(true);
+                        currentUser.getClothings().add(newClothing);
+                    }
+
                     boolean success = repo.updateUser(currentUser);
 
                     if (success) {
@@ -99,9 +138,7 @@ public class ShopActivity extends AppCompatActivity {
         }
     }
 
-
     private void addItemToShop(String name, int price, Runnable onBuyClick) {
-        // kreiramo jedan red za item
         LinearLayout itemLayout = new LinearLayout(this);
         itemLayout.setOrientation(LinearLayout.HORIZONTAL);
         itemLayout.setPadding(0, 10, 0, 10);
