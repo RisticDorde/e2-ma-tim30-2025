@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.ma2025.R;
 import com.example.ma2025.auth.AuthManager;
 import com.example.ma2025.model.Clothing;
+import com.example.ma2025.model.Potion;
 import com.example.ma2025.model.User;
 import com.example.ma2025.model.Weapon;
 import com.example.ma2025.repository.UserRepository;
@@ -133,6 +134,8 @@ public class BattleActivity extends AppCompatActivity {
             currentBossHp = currentBossHpMax;
         }
 
+        applyEquipmentBonuses();
+
         // Asinhrono
         calculateSuccessRate(successRate -> {
             this.successChance = successRate;
@@ -194,6 +197,7 @@ public class BattleActivity extends AppCompatActivity {
     }
 
     private void endBattle(boolean bossDefeated) {
+        decreaseEquipmentDuration();
         if (bossDefeated) {
             long coins = computeCoinsForBossIndex(currentUser.getCurrentBossIndex());
             userRepository.addCoins(currentUser.getId(), (int) coins);
@@ -601,7 +605,6 @@ public class BattleActivity extends AppCompatActivity {
     }
 
     private void dropRandomClothing() {
-        // Definiši sve moguće clothinge
         String[] clothingNames = {
                 "Gloves (+10% power)",
                 "Shield (+10% successful attack)",
@@ -610,20 +613,50 @@ public class BattleActivity extends AppCompatActivity {
 
         String randomClothing = clothingNames[new Random().nextInt(clothingNames.length)];
 
-        // Proveri da li već ima
-        if (!currentUser.hasClothing(randomClothing)) {
-            // Kreiraj novi clothing objekat
-            Clothing newClothing = createClothing(randomClothing);
-            currentUser.addClothing(newClothing);
+        // Odredi tip na osnovu imena
+        String type = "";
+        double bonus = 0.0;
+        if (randomClothing.contains("Gloves")) {
+            type = "gloves";
+            bonus = 0.10;
+        } else if (randomClothing.contains("Shield")) {
+            type = "shield";
+            bonus = 0.10;
+        } else if (randomClothing.contains("Boots")) {
+            type = "boots";
+            bonus = 0.40;
+        }
 
-            userRepository.updateUser(currentUser); // sačuvaj u bazu
+        // Proveri da li već ima istu odeću (po tipu)
+        boolean alreadyHas = false;
+        for (Clothing clothing : currentUser.getClothings()) {
+            if (clothing.getType().equals(type)) {
+                // SABERI bonuse!
+                double newBonus = clothing.getBonus() + bonus;
+                clothing.setBonus(newBonus);
+                clothing.setDuration(2); // Resetuj trajanje
+                clothing.setActivated(true); // Aktiviraj odmah nakon dropa
+
+                alreadyHas = true;
+
+                Toast.makeText(this,
+                        "🎁 Dobio si " + randomClothing + "! Bonus povećan na +" + (int)(newBonus * 100) + "%!",
+                        Toast.LENGTH_LONG).show();
+                break;
+            }
+        }
+
+        if (!alreadyHas) {
+            // Kreiraj novu odeću
+            Clothing newClothing = createClothing(randomClothing);
+            newClothing.setActivated(true); // Aktiviraj odmah nakon dropa
+            currentUser.addClothing(newClothing);
 
             Toast.makeText(this, "🎁 Dobio si: " + randomClothing + "!",
                     Toast.LENGTH_LONG).show();
-        } else {
-            Toast.makeText(this, "Već imaš " + randomClothing,
-                    Toast.LENGTH_SHORT).show();
         }
+
+        userRepository.updateUser(currentUser);
     }
 
     private void dropRandomWeapon() {
@@ -685,7 +718,7 @@ public class BattleActivity extends AppCompatActivity {
 
         // Dodaj clothings
         for (Clothing clothing : currentUser.getClothings()) {
-            if (clothing.isOwned()) {
+            if (clothing.isActivated()) {
                 boolean isEquipped = currentUser.getCurrentEquipment().contains(clothing.getName());
                 equipmentItems.add(new EquipmentItem(
                         clothing.getName(),
@@ -738,6 +771,89 @@ public class BattleActivity extends AppCompatActivity {
         });
 
         builder.create().show();
+    }
+
+
+    private void applyEquipmentBonuses() {
+        double totalPowerBonus = 0.0;
+        double totalSuccessBonus = 0.0;
+        int additionalAttacks = 0;
+
+        // NAPICI - primeni sve aktivne potione
+        for (Potion potion : currentUser.getPotions()) {
+            if (potion.isActivated() && !potion.isExpired()) {
+                totalPowerBonus += potion.getPowerBonus();
+            }
+        }
+
+        // ODEĆA - primeni sve aktivne clothinge
+        for (Clothing clothing : currentUser.getClothings()) {
+            if (clothing.isActivated() && !clothing.isExpired()) {
+                switch (clothing.getType()) {
+                    case "gloves":
+                        totalPowerBonus += clothing.getBonus();
+                        break;
+                    case "shield":
+                        totalSuccessBonus += clothing.getBonus();
+                        break;
+                    case "boots":
+                        // 40% šansa za dodatni napad
+                        if (new Random().nextInt(100) < (clothing.getBonus() * 100)) {
+                            additionalAttacks++;
+                        }
+                        break;
+                }
+            }
+        }
+
+        // ORUŽJE - primeni equipovano oružje
+        for (Weapon weapon : currentUser.getWeapons()) {
+            if (weapon.isOwned() && currentUser.getEquipment().contains(weapon.getName())) {
+                if (weapon.getType().equals("sword")) {
+                    totalPowerBonus += weapon.getBonus();
+                }
+                // Za luk, bonus se primenjuje kod nagrade coins
+            }
+        }
+
+        // Primeni bonuse
+        int basePP = currentUser.getPowerPoints();
+        int boostedPP = (int) (basePP * (1.0 + totalPowerBonus));
+        currentUser.setPowerPoints(boostedPP);
+
+        successChance = Math.min(100.0, successChance + (totalSuccessBonus * 100));
+        remainingAttacks += additionalAttacks;
+
+        Toast.makeText(this, "Bonusi primenjeni! PP: " + boostedPP + ", Šansa: " + (int)successChance + "%",
+                Toast.LENGTH_LONG).show();
+    }
+
+    private void decreaseEquipmentDuration() {
+        // Smanji trajanje NAPITAKA
+        for (Potion potion : currentUser.getPotions()) {
+            if (potion.isActivated() && !potion.isExpired()) {
+                potion.decreaseDuration();
+
+                if (potion.isExpired()) {
+                    Toast.makeText(this, potion.getName() + " je istekao!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+
+        // Smanji trajanje ODEĆE
+        for (Clothing clothing : currentUser.getClothings()) {
+            if (clothing.isActivated() && !clothing.isExpired()) {
+                clothing.decreaseDuration();
+
+                if (clothing.isExpired()) {
+                    clothing.setActivated(false); // Deaktiviraj
+                    Toast.makeText(this, clothing.getName() + " je istrošena!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+
+        // Sačuvaj promene
+        userRepository.updateUser(currentUser);
     }
 
     @Override

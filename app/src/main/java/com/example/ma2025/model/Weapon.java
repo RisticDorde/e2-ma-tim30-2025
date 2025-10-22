@@ -8,8 +8,6 @@ public class Weapon {
     private double dropChance;    // verovatnoća da padne (ako ga već ima, raste za 0.02%)
     private int upgradeLevel;     // koliko puta je unapređeno
 
-
-
     // Konstruktor
     public Weapon(){}
     public Weapon(String name, String type, double bonus, double dropChance, boolean isOwned) {
