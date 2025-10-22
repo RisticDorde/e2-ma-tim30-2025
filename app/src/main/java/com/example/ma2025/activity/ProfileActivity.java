@@ -35,9 +35,16 @@ public class ProfileActivity extends AppCompatActivity {
     private TextView progressText;
     private Button changePasswordBtn;
 
+    private Button statisticBtn;
+
+    // QR kod elementi
+    private ImageView qrCodeImage;
+    private TextView qrCodeText;
+    private TextView qrCodeLabel;
+
     private UserRepository userRepo;
     private User currentUser;
-    private boolean isOwnProfile = true; // da znamo da li gledamo svoj ili tuđ profil
+    private boolean isOwnProfile = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,11 +57,7 @@ public class ProfileActivity extends AppCompatActivity {
         userRepo = new UserRepository(this);
         initViews();
 
-        Button statisticsBtn = findViewById(R.id.btn_statistics);
-        statisticsBtn.setOnClickListener(v -> {
-            Intent intent = new Intent(ProfileActivity.this, StatisticsActivity.class);
-            startActivity(intent);
-        });
+
 
         String viewedEmail = getIntent().getStringExtra("viewed_email");
 
@@ -70,7 +73,7 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void initViews() {
-       avatarImage = findViewById(R.id.avatar_image);
+        avatarImage = findViewById(R.id.avatar_image);
         usernameText = findViewById(R.id.username_text);
         levelText = findViewById(R.id.level_text);
         titleText = findViewById(R.id.title_text);
@@ -81,6 +84,12 @@ public class ProfileActivity extends AppCompatActivity {
         levelProgressBar = findViewById(R.id.level_progress_bar);
         progressText = findViewById(R.id.progress_text);
         changePasswordBtn = findViewById(R.id.change_password_btn);
+        statisticBtn = findViewById((R.id.btn_statistics));
+
+        // QR kod elementi
+        qrCodeImage = findViewById(R.id.qr_code_image);
+        qrCodeText = findViewById(R.id.qr_code_text);
+        qrCodeLabel = findViewById(R.id.qr_code_label);
     }
 
     private void loadCurrentUser() {
@@ -118,18 +127,16 @@ public class ProfileActivity extends AppCompatActivity {
         String avatarName = currentUser.getAvatar();
         Log.d("PROFILE", "Avatar iz baze: '" + avatarName + "'");
 
-
         if (avatarName != null && !avatarName.isEmpty()) {
             int imageResId = getResources().getIdentifier(avatarName, "drawable", getPackageName());
             if (imageResId != 0) {
                 avatarImage.setImageResource(imageResId);
             } else {
-                avatarImage.setImageResource(R.drawable.avatar_1); // fallback slika
+                avatarImage.setImageResource(R.drawable.avatar_1);
             }
         } else {
-            avatarImage.setImageResource(R.drawable.avatar_1); // ako nema slike
+            avatarImage.setImageResource(R.drawable.avatar_1);
         }
-
 
         usernameText.setText(currentUser.getUsername());
         Log.d("PROFILE", "Username iz baze: '" + currentUser.getUsername() + "'");
@@ -146,7 +153,7 @@ public class ProfileActivity extends AppCompatActivity {
         } else {
             for (String badge : currentUser.getBadges()) {
                 TextView badgeView = new TextView(this);
-                badgeView.setText(badge); // ili možeš staviti sličicu ako imaš drawable
+                badgeView.setText(badge);
                 badgeView.setPadding(8, 0, 8, 0);
                 badgesContainer.addView(badgeView);
             }
@@ -171,6 +178,9 @@ public class ProfileActivity extends AppCompatActivity {
             }
         }
 
+        // --- QR Code ---
+        displayQRCode();
+
         if (isOwnProfile) {
             ppText.setText("PP: " + currentUser.getPowerPoints());
             xpText.setText("XP: " + currentUser.getExperiencePoints());
@@ -181,6 +191,14 @@ public class ProfileActivity extends AppCompatActivity {
             int requiredXp = currentUser.getNextLevelRequiredXp();
             progressText.setText(currentProgress + " / " + requiredXp + " XP");
             changePasswordBtn.setVisibility(View.VISIBLE);
+            statisticBtn.setVisibility(View.VISIBLE);
+
+
+            // Prikaži QR kod samo na sopstvenom profilu
+            qrCodeImage.setVisibility(View.VISIBLE);
+            qrCodeText.setVisibility(View.VISIBLE);
+            qrCodeLabel.setVisibility(View.VISIBLE);
+            qrCodeLabel.setText("Moj QR kod");
         } else {
             ppText.setVisibility(View.GONE);
             xpText.setVisibility(View.GONE);
@@ -188,6 +206,45 @@ public class ProfileActivity extends AppCompatActivity {
             levelProgressBar.setVisibility(View.GONE);
             progressText.setVisibility(View.GONE);
             changePasswordBtn.setVisibility(View.GONE);
+            statisticBtn.setVisibility(View.GONE);
+
+            // Prikaži QR kod i na tuđem profilu (za skeniranje)
+            qrCodeImage.setVisibility(View.VISIBLE);
+            qrCodeText.setVisibility(View.VISIBLE);
+            qrCodeLabel.setVisibility(View.VISIBLE);
+            qrCodeLabel.setText("Skeniraj QR kod");
+        }
+    }
+
+    /**
+     * Generiše i prikazuje QR kod korisnika
+     */
+    private void displayQRCode() {
+        if (currentUser == null) return;
+
+        String qrContent = currentUser.getQrCode();
+
+        if (qrContent == null || qrContent.isEmpty()) {
+            Log.w("PROFILE", "QR kod nije postavljen za korisnika");
+            qrCodeImage.setVisibility(View.GONE);
+            qrCodeText.setVisibility(View.GONE);
+            qrCodeLabel.setVisibility(View.GONE);
+            return;
+        }
+
+        Log.d("PROFILE", "Generišem QR kod: " + qrContent);
+
+        // Generiši QR kod bitmap
+        Bitmap qrBitmap = QRCodeGenerator.generateQRCode(qrContent, 500, 500);
+
+        if (qrBitmap != null) {
+            qrCodeImage.setImageBitmap(qrBitmap);
+            qrCodeText.setText(qrContent);
+            Log.d("PROFILE", "QR kod uspešno generisan");
+        } else {
+            Log.e("PROFILE", "Neuspešno generisanje QR koda");
+            Toast.makeText(this, "Greška pri generisanju QR koda", Toast.LENGTH_SHORT).show();
+            qrCodeImage.setVisibility(View.GONE);
         }
     }
 
@@ -196,5 +253,33 @@ public class ProfileActivity extends AppCompatActivity {
             Intent intent = new Intent(ProfileActivity.this, ChangePasswordActivity.class);
             startActivity(intent);
         });
+
+        // Opciono: Dugme za deljenje QR koda
+        qrCodeImage.setOnClickListener(v -> {
+            if (isOwnProfile) {
+                shareQRCode();
+            }
+        });
+
+
+        statisticBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, StatisticsActivity.class);
+            startActivity(intent);
+        });
+    }
+
+    /**
+     * Deljenje QR koda (opciono)
+     */
+    private void shareQRCode() {
+        if (currentUser == null) return;
+
+        String qrContent = currentUser.getQrCode();
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, "Moj QR kod: " + qrContent);
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Moj profil");
+
+        startActivity(Intent.createChooser(shareIntent, "Podeli QR kod"));
     }
 }
