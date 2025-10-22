@@ -2,6 +2,7 @@ package com.example.ma2025.activity;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -111,7 +112,7 @@ public class StatisticsActivity extends AppCompatActivity {
             return;
         }
 
-        currentUserId = firebaseUser.getEmail();
+        currentUserId = firebaseUser.getUid();
         if (currentUserId == null) {
             Toast.makeText(this, "Greška pri učitavanju profila", Toast.LENGTH_SHORT).show();
             finish();
@@ -119,7 +120,9 @@ public class StatisticsActivity extends AppCompatActivity {
     }
 
     private void loadStatistics() {
+        Log.d("PROVERA", "**********UCITAVANJE STATISTIKE");
         if (currentUserId == null) return;
+        Log.d("P", "Ispisi id:" + currentUserId);
 
         // Prikaži loading (opciono)
         showLoading(true);
@@ -156,6 +159,11 @@ public class StatisticsActivity extends AppCompatActivity {
     }
 
     private void displayStatistics(UserStatistics stats) {
+        Log.d("STATS_DEBUG", "Total Tasks Created: " + stats.getTotalTasksCreated());
+        Log.d("STATS_DEBUG", "Total Tasks Completed: " + stats.getTotalTasksCompleted());
+        Log.d("STATS_DEBUG", "Active Days: " + stats.getActiveDaysStreak());
+        Log.d("STATS_DEBUG", "Categories: " + stats.getCompletedTasksByCategory().size());
+        Log.d("STATS_DEBUG", "XP Days: " + stats.getXpLast7Days().size());
         // Postavi text view-e
         displayTextStatistics(stats);
 

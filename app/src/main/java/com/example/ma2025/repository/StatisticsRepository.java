@@ -38,24 +38,28 @@ public class StatisticsRepository {
     /**
      * Glavna metoda koja vraća kompletan statistički objekat za korisnika
      */
-    public void getUserStatistics(String userId, StatisticsCallback callback) {
+    public void getUserStatistics(String email, StatisticsCallback callback) {
         UserStatistics stats = new UserStatistics();
 
         // Učitaj sve zadatke korisnika
         db.collection("tasks")
-                .whereEqualTo("userId", userId)
-                .whereEqualTo("frequency", TaskFrequency.ONETIME.name())
+                .whereEqualTo("userId", email)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     List<Task> allTasks = new ArrayList<>();
                     for (QueryDocumentSnapshot document : querySnapshot) {
                         Task task = document.toObject(Task.class);
+                        Log.d("STATS_DEBUG", "Učitan zadatak: " + task);
                         allTasks.add(task);
                     }
 
+                    Log.d("STATS_DEBUG", "Učitano zadataka: " + allTasks.size());
+                    Log.d("STATS_DEBUG", "id usera: " + email); // Debug
+
+
                     // Učitaj korisnika za boss podatke
                     db.collection("users")
-                            .document(userId)
+                            .document(email)
                             .get()
                             .addOnSuccessListener(userDoc -> {
                                 User user = userDoc.toObject(User.class);
